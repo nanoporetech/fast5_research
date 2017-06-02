@@ -1,0 +1,53 @@
+dist: trusty
+sudo: required
+
+
+stages:
+  - test
+  - build
+  - test_build
+  - release
+
+
+before_script:
+  - apt-get update
+  - apt-get install -y python-virtualenv python2.7
+
+
+do_testing:
+  stage: test
+  script:
+    - make test
+
+
+build_sdist:
+  stage: build
+  script:
+    #  Build project
+    - make sdist
+  artifacts:
+    paths:
+      - dist/*
+
+
+test_sdist:
+  stage: test_build
+  script:
+    - make test_sdist
+  dependencies:
+    - build_sdist
+
+
+do_pypi_release:
+  stage: release
+  script:
+      #  Going to push project via ssh.
+      #  PYPI_KEY and PYPI_HOST should set up as project variables on Gitlab
+      #  PYPI_KEY is private key produced by ssh-keygen
+      - echo "TODO: push to pypi"
+  dependencies:
+    - build_sdist
+  only:
+      #  Only do a release of tags marked explicit as release (match this regular expression)
+      - tags
+      - /^release_.*$/

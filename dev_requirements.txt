@@ -1,0 +1,4 @@
+setuptools
+nose
+sphinx
+sphinx-argparse==0.1.17
