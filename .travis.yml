@@ -7,5 +7,7 @@ dist: trusty
 
 install: "pip install -r dev_requirements.txt"
 
-script: nosetests
+script:
+    - pip install .
+    - nosetests
 
