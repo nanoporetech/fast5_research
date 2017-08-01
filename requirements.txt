@@ -1,5 +1,5 @@
 # fast5_research requirements. 
 # Use comment lines or inline comments to document why we are using particular versions
 h5py
-numpy==1.9.0
+numpy
 progressbar2

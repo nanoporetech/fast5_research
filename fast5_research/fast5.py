@@ -834,7 +834,8 @@ class Fast5(h5py.File):
         base = self.get_analysis_latest(analysis)
         events_path = self._join_path(base, self.__default_basecall_1d_events__.format(section))
         try:
-            return self[events_path][()]
+            # use _get_read_data to make sure int fields are converted as needed
+            return self._get_read_data({'Events': self[events_path]})
         except:
             raise ValueError('Could not retrieve basecall_1D data from {}'.format(events_path))
 
@@ -959,7 +960,8 @@ class Fast5(h5py.File):
             base = self.get_analysis_latest(analysis)
             event_path = self._join_path(base, self.__default_mapping_events__.format(section))
             try:
-                events = self[event_path][()]
+                # use _get_read_data to make sure int fields are converted as needed
+                events = self._get_read_data({'Events': self[event_path]})
             except:
                 raise ValueError('Could not retrieve squiggle_mapping data from {}'.format(event_path))
             if get_model:
@@ -976,7 +978,8 @@ class Fast5(h5py.File):
             base = self.get_analysis_latest(analysis)
             event_path = self._join_path(base, self.__default_substep_mapping_events__.format(section))
             try:
-                events = self[event_path][()]
+                # use _get_read_data to make sure int fields are converted as needed
+                events = self._get_read_data({'Events': self[event_path]})
             except:
                 raise ValueError('Could not retrieve substep_mapping data from {}'.format(event_path))
             attrs=None
@@ -988,7 +991,8 @@ class Fast5(h5py.File):
             base = self.get_analysis_latest(analysis)
             event_path = self._join_path(base, self.__default_basecall_mapping_events__.format(section))
             try:
-                events = self[event_path][()]
+                # use _get_read_data to make sure int fields are converted as needed
+                events = self._get_read_data({'Events': self[event_path]})
             except:
                 raise ValueError('Could not retrieve basecall_mapping data from {}'.format(event_path))
             if get_model:
