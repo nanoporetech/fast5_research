@@ -27,10 +27,11 @@ extra_requires = {
 setup(
     name=__pkg_name__,
     version=__version__,
-    url='https://git.oxfordnanolabs.local/research/{}'.format(__pkg_name__),
+    url='https://github.com/nanoporetech/{}'.format(__pkg_name__),
     author='mwykes',
     author_email='mwykes@nanoporetech.com',
-    description='Research fast5 read/write package',
+    description='ONT Research fast5 read/write package',
+    license='Mozilla Public License 2.0',
     dependency_links=[],
     install_requires=install_requires,
     tests_require=['nose>=1.3.7'].extend(install_requires),
@@ -39,4 +40,14 @@ setup(
     package_data={},
     zip_safe=True,
     test_suite='discover_tests',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+        'Natural Language :: English',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: System :: Distributed Computing',
+    ],
+    keywords='ONT Research fast5 API',
 )
