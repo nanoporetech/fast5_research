@@ -9,8 +9,6 @@ PKG_NAME=fast5_research
 # and need to. 
 VENV_DIR=$(shell eval 'if [ -d /root/venv ]; then echo /root/venv; else echo `pwd`/venv/${PKG_NAME}; fi')
 VENV=${VENV_DIR}/bin/activate
-TRUST=''
-EXTRA_URL=''
 START_DIR=$(shell pwd)
 
 venv:
@@ -18,8 +16,8 @@ venv:
 	test -d ${VENV_DIR} || virtualenv -p python2 ${VENV_DIR}; \
 							. ${VENV}; \
 							pip install --upgrade pip; \
-							pip install -r dev_requires.txt ${TRUST} ${EXTRA_URL}; \
-							pip install -r requirements.txt ${TRUST} ${EXTRA_URL}; 
+							pip install -r dev_requirements.txt; \
+							pip install -r requirements.txt; 
 
 
 
