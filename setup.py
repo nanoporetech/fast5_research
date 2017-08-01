@@ -42,12 +42,12 @@ setup(
     test_suite='discover_tests',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Natural Language :: English',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Distributed Computing',
+        'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
     keywords='ONT Research fast5 API',
 )
