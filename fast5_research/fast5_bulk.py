@@ -976,7 +976,7 @@ class BulkFast5(h5py.File):
 
 
 #
-# Taken from https://git.oxfordnanolabs.local/minknow/minknow/blob/release/1.3/python/minknow-py/minknow/asicb_command/__init__.py
+# Taken from minknow/asicb_command/__init__.py
 #
 class AsicBConfiguration(object):
     """Wrapper around the asicb configuration struct passed to the asicb over usb"""
