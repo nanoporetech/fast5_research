@@ -535,6 +535,6 @@ def get_changes(data, ignore_cols=None, use_cols=None):
             cols.remove(col)
     elif use_cols is not None:
         cols = list(use_cols)
-    changed_inds = np.where(data[cols][1:] != data[cols][:-1])[0]
+    changed_inds = np.where(data[cols][1:] != data[cols][:-1])[0] + 1
     changed_inds = [0] + [i for i in changed_inds]
     return data[(changed_inds,)]
