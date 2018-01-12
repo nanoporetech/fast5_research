@@ -6,6 +6,7 @@ from sys import version_info
 from collections import defaultdict
 from numpy.lib.recfunctions import append_fields
 from xml.dom import minidom
+from fast5_research.util import get_changes
 import ast
 
 
@@ -527,6 +528,9 @@ class BulkFast5(h5py.File):
                 self.enum_to_mux[v] = mux
         data = data[()]  # load into memory
         data = self._strip_metadata(data)  # remove dtype.metadata dict present with h5py>=2.3.0
+
+        # remove any rows where the mux state has not changed
+        data = get_changes(data, ignore_cols=('approx_raw_index',))
 
         if wells_only:  # only consider changes to wells in [1,2,3,4]
             wells = [1, 2, 3, 4]

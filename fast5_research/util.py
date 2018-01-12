@@ -519,3 +519,22 @@ def file_has_fields(fname, fields=None):
         present_fields = set(fh.readline().rstrip('\n').split('\t'))
         has_fields = req_fields.issubset(present_fields)
     return has_fields
+
+def get_changes(data, ignore_cols=None, use_cols=None):
+    """Return only rows of a structured array which are not equal to the previous row.
+
+    :param data: Numpy record array.
+    :param ignore_cols: iterable of column names to ignore in checking for equality between rows.
+    :param use_cols: iterable of column names to include in checking for equality between rows (only used if ignore_cols is None).
+
+    :returns: Numpy record array.
+    """
+    cols = list(data.dtype.names)
+    if ignore_cols is not None:
+        for col in ignore_cols:
+            cols.remove(col)
+    elif use_cols is not None:
+        cols = list(use_cols)
+    changed_inds = np.where(data[cols][1:] != data[cols][:-1])[0]
+    changed_inds = [0] + [i for i in changed_inds]
+    return data[(changed_inds,)]
