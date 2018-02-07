@@ -1,6 +1,6 @@
 from copy import deepcopy
 import fnmatch
-from glob import glob
+from glob import iglob
 import os
 import re
 import random
@@ -1221,8 +1221,8 @@ def recursive_glob(treeroot, pattern):
     results = []
     for base, dirs, files in os.walk(treeroot):
         goodfiles = fnmatch.filter(files, pattern)
-        results.extend(os.path.join(base, f) for f in goodfiles)
-    return results
+        for f in goodfiles:
+            yield os.path.join(base, f)
 
 
 def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
@@ -1249,34 +1249,37 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
             if recursive:
                 files = recursive_glob(path, '*.fast5')
             else:
-                files = glob(os.path.join(path, '*.fast5'))
+                files = iglob(os.path.join(path, '*.fast5'))
         else:
             files = [path]
     else:
         if isinstance(strand_list, list):
-            files = [os.path.join(path, x) for x in strand_list]
+            files = (os.path.join(path, x) for x in strand_list)
         else:
             reads = readtsv(strand_list)
             if 'filename' in reads.dtype.names:
                 #  Strand list contains a filename column
-                files = [os.path.join(path, x) for x in reads['filename']]
+                files = (os.path.join(path, x) for x in reads['filename'])
             else:
                 raise KeyError("Strand file does not contain required field 'filename'.\n")
                 sl = None
 
-    # If random and limit are given, it is more efficient to just choose the files
-    # if just random is given, shuffle in place.
-    if shuffle and limit:
-        files = np.random.choice(files, limit, replace=False)
+    # shuffle means we can't be lazy
+    if shuffle and limit is not None:
+        files = np.random.choice(list(files), limit, replace=False)
     elif shuffle:
-        random.shuffle(files)
+        random.shuffle(list(files))
+    elif limit is not None:
+        try:
+            files = files[:limit]
+        except TypeError:
+            files = itertools.islice(files, limit)
 
-    files_iter = files[:limit]
     if progress:
         bar = progressbar.ProgressBar()
-        files_iter = bar(files_iter)
+        files = bar(files)
 
-    for f in files_iter:
+    for f in files:
         if not os.path.exists(f):
             sys.stderr.write('File {} does not exist, skipping\n'.format(f))
             continue
