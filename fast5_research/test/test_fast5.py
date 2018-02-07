@@ -1,12 +1,28 @@
-import unittest
-import types
 import os
-import numpy as np
-import h5py
-from uuid import uuid4
 import tempfile
+import types
+import unittest
+from uuid import uuid4
 
-from fast5_research.fast5 import Fast5
+import h5py
+import numpy as np
+
+from fast5_research import Fast5, iterate_fast5
+
+
+class IterateFiles(unittest.TestCase):
+    def setUp(self):
+        self.path = (os.path.join(
+            os.path.dirname(__file__), 'data', 'recursive'
+        ))
+
+    def test_000_single_layer(self):
+        fnames = list(iterate_fast5(self.path, paths=True))
+        self.assertEqual(len(fnames), 3)
+        
+    def test_001_recursive(self):
+        fnames = list(iterate_fast5(self.path, paths=True, recursive=True))
+        self.assertEqual(len(fnames), 5)
 
 
 class Fast5API(unittest.TestCase):
@@ -176,7 +192,6 @@ class Fast5API(unittest.TestCase):
 
 
         # Metadata duration and start_time should be integers, not floats
-        print tmp_file
         with Fast5(tmp_file, 'r') as h:
             for key in ['duration', 'start_time']:
                 self.assertIsInstance(

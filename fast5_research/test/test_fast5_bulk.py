@@ -1,8 +1,8 @@
+import numpy as np
 import os
 import unittest
-import numpy as np
 
-from fast5_research.fast5_bulk import BulkFast5
+from fast5_research import BulkFast5
 
 
 class BulkFast5Test(unittest.TestCase):
