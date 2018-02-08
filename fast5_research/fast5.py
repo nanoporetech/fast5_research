@@ -1262,7 +1262,6 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
                 files = (os.path.join(path, x) for x in reads['filename'])
             else:
                 raise KeyError("Strand file does not contain required field 'filename'.\n")
-                sl = None
 
     # shuffle means we can't be lazy
     if shuffle and limit is not None:
