@@ -1,6 +1,7 @@
 from copy import deepcopy
 import fnmatch
 from glob import iglob
+import itertools
 import os
 import re
 import random
