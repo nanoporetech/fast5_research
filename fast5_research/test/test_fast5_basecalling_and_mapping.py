@@ -1,11 +1,12 @@
+from collections import namedtuple
 import os
+import tempfile
 import unittest
+
 import numpy as np
 import numpy.testing as nptest
-import tempfile
 
-from collections import namedtuple
-from fast5_research.fast5 import Fast5
+from fast5_research import Fast5
 
 class Fast5BasecallerAndMapper(unittest.TestCase):
 

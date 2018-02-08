@@ -1,15 +1,17 @@
-import h5py
-import os
-import sys
-import warnings
-from glob import glob
 from copy import deepcopy
-import subprocess
-import shutil
-import numpy as np
-import numpy.lib.recfunctions as nprf
+import fnmatch
+from glob import iglob
+import os
 import re
 import random
+import shutil
+import subprocess
+import sys
+import warnings
+
+import h5py
+import numpy as np
+import numpy.lib.recfunctions as nprf
 import progressbar
 
 from fast5_research.util import mad
@@ -20,6 +22,7 @@ from fast5_research.util import validate_event_table, validate_model_table, vali
 from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred
 
 warnings.simplefilter("always", DeprecationWarning)
+
 
 class Fast5(h5py.File):
     """Class for grabbing data from single read fast5 files. Many attributes/
@@ -1213,8 +1216,18 @@ class Fast5(h5py.File):
             raise ValueError('Could not retrieve sequence data from {}'.format(location))
 
 
+def recursive_glob(treeroot, pattern):
+    # Emulates e.g. glob.glob("**/*.fast5"", recursive=True) in python3
+    results = []
+    for base, dirs, files in os.walk(treeroot):
+        goodfiles = fnmatch.filter(files, pattern)
+        for f in goodfiles:
+            yield os.path.join(base, f)
+
+
 def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
-                      limit=None, shuffle=False, robust=False, progress=False):
+                  limit=None, shuffle=False, robust=False, progress=False,
+                  recursive=False):
     """Iterate over directory of fast5 files, optionally only returning those in list
 
     :param path: Directory in which single read fast5 are located or filename.
@@ -1228,38 +1241,44 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
     :param shuffle: Shuffle files to randomize yield of files.
     :param robust: Carry on with iterating over FAST5 files after an exception was raised.
     :param progress: Display progress bar.
+    :param recursive: Perform a recursive search for files in subdirectories of `path`.
     """
     if strand_list is None:
         #  Could make glob more specific to filename pattern expected
         if os.path.isdir(path):
-            files = glob(os.path.join(path, '*.fast5'))
+            if recursive:
+                files = recursive_glob(path, '*.fast5')
+            else:
+                files = iglob(os.path.join(path, '*.fast5'))
         else:
             files = [path]
     else:
         if isinstance(strand_list, list):
-            files = [os.path.join(path, x) for x in strand_list]
+            files = (os.path.join(path, x) for x in strand_list)
         else:
             reads = readtsv(strand_list)
             if 'filename' in reads.dtype.names:
                 #  Strand list contains a filename column
-                files = [os.path.join(path, x) for x in reads['filename']]
+                files = (os.path.join(path, x) for x in reads['filename'])
             else:
                 raise KeyError("Strand file does not contain required field 'filename'.\n")
-                sl = None
 
-    # If random and limit are given, it is more efficient to just choose the files
-    # if just random is given, shuffle in place.
-    if shuffle and limit:
-        files = np.random.choice(files, limit, replace=False)
+    # shuffle means we can't be lazy
+    if shuffle and limit is not None:
+        files = np.random.choice(list(files), limit, replace=False)
     elif shuffle:
-        random.shuffle(files)
+        random.shuffle(list(files))
+    elif limit is not None:
+        try:
+            files = files[:limit]
+        except TypeError:
+            files = itertools.islice(files, limit)
 
-    files_iter = files[:limit]
     if progress:
         bar = progressbar.ProgressBar()
-        files_iter = bar(files_iter)
+        files = bar(files)
 
-    for f in files_iter:
+    for f in files:
         if not os.path.exists(f):
             sys.stderr.write('File {} does not exist, skipping\n'.format(f))
             continue
