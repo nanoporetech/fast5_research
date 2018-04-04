@@ -184,7 +184,10 @@ class Fast5(h5py.File):
     @property
     def attributes(self):
         """Attributes for a read, assumes one read in file"""
-        return dict(self.get_read(group = True).attrs)
+        try:
+            return dict(self.get_read(group=True).attrs)
+        except IndexError:
+            return dict(self.get_read(group=True, raw=True).attrs)
 
     def summary(self, rename=True, delete=True, scale=True):
         """A read summary, assumes one read in file"""
