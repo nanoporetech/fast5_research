@@ -10,7 +10,10 @@ import subprocess
 import sys
 import warnings
 
-import h5py
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    import h5py
+
 import numpy as np
 import numpy.lib.recfunctions as nprf
 import progressbar
@@ -236,13 +239,14 @@ class Fast5(h5py.File):
             if name not in keep:
                 del analyses[name]
 
-    def repack(self):
+    def repack(self, pack_opts=''):
         """Run h5repack on the current file. Returns a fresh object."""
         path = os.path.abspath(self.filename)
         path_tmp = '{}.tmp'.format(path)
         mode = self.mode
         self.close()
-        subprocess.call(['h5repack', path, path_tmp])
+        pack_opts = pack_opts.split()
+        subprocess.call(['h5repack'] + pack_opts + [path, path_tmp])
         shutil.move(path_tmp, path)
         return Fast5(path, mode)
 
