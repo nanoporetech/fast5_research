@@ -1,14 +1,20 @@
-import h5py
+import ast
+from collections import defaultdict
 import itertools
-import numpy as np
 import re
 from sys import version_info
-from collections import defaultdict
-from numpy.lib.recfunctions import append_fields
 from xml.dom import minidom
-from fast5_research.util import get_changes
-import ast
+import warnings
 
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    import h5py
+
+import numpy as np
+from numpy.lib.recfunctions import append_fields
+
+
+from fast5_research.util import get_changes
 
 if version_info[0] < 3:
     from StringIO import StringIO
