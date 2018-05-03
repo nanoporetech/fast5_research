@@ -106,12 +106,18 @@ class Fast5(h5py.File):
         #       directly, but reconstructs it in a parallel layout). channel_id
         #       is enough for most purposes I (cjw) think, if we take filenames
         #       to be a key to filter by.
-        req_fields = ['channel_number', 'offset', 'range', 'digitisation', 'sampling_rate']
+        req_fields = {
+                      'digitisation': np.dtype('f8'),
+                      'offset': np.dtype('f8'),
+                      'range': np.dtype('f8'),
+                      'sampling_rate': np.dtype('f8'),
+                      'channel_number': str,
+        }
         if not set(req_fields).issubset(set(channel_id.keys())):
             raise KeyError(
-                'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields, channel_id.keys())
+                'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), channel_id.keys())
             )
-
+        channel_id = _type_meta(channel_id, req_fields)
         # Start a new file, populate it with meta
         with h5py.File(fname, 'w') as h:
             h.attrs['file_version'] = 1.0
@@ -512,11 +518,18 @@ class Fast5(h5py.File):
         #      https://wiki/display/OFAN/Single-read+fast5+file+format
         #   notes that prior to MinKNOW version 49.2 'read_id' was not present.
         #   Why do we have a specification?
-        req_keys = ['start_time', 'duration', 'read_number', 'start_mux', 'read_id', 'median_before']
+
+        req_keys = {'start_time': np.dtype('u8'),
+                    'duration': np.dtype('u4'),
+                    'read_number': np.dtype('i4'),
+                    'start_mux': np.dtype('u1'),
+                    'read_id': str,
+                    'median_before': np.dtype('f8'),
+        }
         meta = {k:v for k,v in meta.iteritems() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
-                'Raw meta data must contain keys: {}.'.format(req_keys)
+                'Raw meta data must contain keys: {}.'.format(req_keys.keys())
             )
         # Metadata should be written in samples (int), not seconds (float)
         self._convert_meta_times(meta)
@@ -531,7 +544,8 @@ class Fast5(h5py.File):
                     "Attempted to set raw meta data as {} "
                     "but event meta is {}".format(meta, event_meta)
                 )
-
+        # Ensure meta values are in correct type
+        meta = _type_meta(meta, req_keys)
         # Good to go!
         read_path = self._join_path(self.__raw_path__, 'Read_{}'.format(read_number))
         data_path = self._join_path(read_path, 'Signal')
@@ -1303,3 +1317,22 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
                 fh.close()
         else:
             yield os.path.abspath(f)
+
+
+def _type_meta(meta, types):
+        """Convert meta data fields into required types.
+        :param meta: dict of values
+        :param: types: dict of types or `np.dtype`
+
+        :returns: dict
+        """
+
+        converted = {k:v for k,v in meta.items()}
+        for k, dtype in types.items():
+            if k in meta:
+                if isinstance(dtype, np.dtype):
+                    val = np.array([meta[k]], dtype=dtype)[0]
+                else:
+                    val = dtype(meta[k])
+                converted[k] = val
+        return converted
