@@ -62,14 +62,16 @@ class BulkFast5Test(unittest.TestCase):
     def test_parse_temperature(self):
         temps = self.fh.get_temperature()
         expected = np.array([(2.0, 36.97), (6.0, 36.98), (8.0, 37.0)],
-            dtype=[('time', '<f8'), ('minion_heatsink_temperature', '<f8')]
-        )
+                            dtype=[('time', '<f8'), ('minion_heatsink_temperature', '<f8')])
+
         self.assertTupleEqual(temps.dtype.names, expected.dtype.names)
         for field in expected.dtype.names:
             np.testing.assert_allclose(
                 expected[field], temps[0:3][field])
 
     def test_parse_waveform_timings(self):
+        import pdb
+        #pdb.set_trace()
         timings = self.fh.get_waveform_timings()
         self.assertEqual(len(timings), 8)
         expected_first = np.array((313.23200000000003, 607.77099999999996))
@@ -147,7 +149,7 @@ class BulkFast5Test(unittest.TestCase):
         events = self.fh.get_events(self.fh.channels[0], raw_indices=[start, end])
         self.assertEqual(len(events), 3)
 
-    def test_parse_event_data_by_raw_index(self):
+    def test_parse_event_data_by_raw_index2(self):
         """Test parsing the event dataset sliced by event indices"""
 
         events = self.fh.get_events(self.fh.channels[0], event_indices=[1, 3])
