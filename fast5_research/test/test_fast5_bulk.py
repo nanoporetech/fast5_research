@@ -20,7 +20,7 @@ class BulkFast5Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        print '\n* Bulk Fast5'
+        print('\n* Bulk Fast5')
 
     # tests specific to this file
 
@@ -97,10 +97,10 @@ class BulkFast5Test(unittest.TestCase):
         """Test parsing of mux changes"""
         mux_changes = list(self.fh.get_mux_changes(self.fh.channels[0]))
         self.assertEqual(len(mux_changes), 6)
-        self.assertTupleEqual((3030000L, 2), tuple(mux_changes[2]))
+        self.assertTupleEqual((3030000, 2), tuple(mux_changes[2]))
         # now test another channel - this might fail if caching has gone wrong
         mux_changes = list(self.fh.get_mux_changes(self.fh.channels[1]))
-        self.assertTupleEqual((50000L, 0), tuple(mux_changes[2]))
+        self.assertTupleEqual((50000, 0), tuple(mux_changes[2]))
 
     # tests which have been designed to work for our elec3 example and converted
     # ABF file
@@ -287,7 +287,7 @@ class BulkABFFast5Test(BulkFast5Test):
 
     @classmethod
     def setUpClass(self):
-        print '\n* Bulk ABF Fast5'
+        print('\n* Bulk ABF Fast5')
 
     # tests to skip
     @unittest.skip("Skipping test_parse_experimental_metadata")
