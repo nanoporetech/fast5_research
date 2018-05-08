@@ -1,6 +1,7 @@
-language: python
+#1;4205;0clanguage: python
 python:
     - "2.7"
+    - "3.4"
 dist: trusty
 
 
