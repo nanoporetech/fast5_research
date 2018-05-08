@@ -99,7 +99,7 @@ class BulkFast5(h5py.File):
 
         if self.__channel_meta__.format(channel) in self:
             meta = dict(self[self.__channel_meta__.format(channel)].attrs)
-        elif self.has_raw(channel): # use raw meta data
+        elif self.has_raw(channel):  # use raw meta data
             meta = dict(self[self.__raw_meta__.format(channel)].attrs)
         else:
             meta = {}
