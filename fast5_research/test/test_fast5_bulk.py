@@ -70,8 +70,6 @@ class BulkFast5Test(unittest.TestCase):
                 expected[field], temps[0:3][field])
 
     def test_parse_waveform_timings(self):
-        import pdb
-        #pdb.set_trace()
         timings = self.fh.get_waveform_timings()
         self.assertEqual(len(timings), 8)
         expected_first = np.array((313.23200000000003, 607.77099999999996))
