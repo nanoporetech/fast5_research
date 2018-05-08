@@ -18,7 +18,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Create a read fast5 from scratch with previously simulated mapping and basecall 1D data"""
-        print '* Fast5 Basecaller and Mapper'
+        print('* Fast5 Basecaller and Mapper')
 
         self.seq = 'CATTACGCATTTACCGAAACCTGGGCAAA'
         self.qstring = '!'*len(self.seq)

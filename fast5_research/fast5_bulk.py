@@ -526,7 +526,7 @@ class BulkFast5(h5py.File):
         if not hasattr(self, "enum_to_mux"):
             # Build a dict which relates enum values to mux.
             self.enum_to_mux = {}
-            for k, v in enum.iteritems():
+            for k, v in enum.items():
                 mux = 0
                 mo = re.search(r'(\d)$', k)
                 if mo is not None:
@@ -578,7 +578,7 @@ class BulkFast5(h5py.File):
         """
         mux_timings = []
         on_index = None
-        for i in xrange(0, len(self["Device"]["AsicCommands"])):
+        for i in range(0, len(self["Device"]["AsicCommands"])):
             if self._waveform_enabled(i):
                 on_index = self["Device"]["AsicCommands"][i]["frame_number"]
             elif on_index is not None:
@@ -767,7 +767,7 @@ class BulkFast5(h5py.File):
         for item in self._iter_records(exph_fh):
             #item should contain 'time' and something else
             time = item['time']
-            field, value = ((k,v) for k,v in item.iteritems() if k != 'time').next()
+            field, value = ((k,v) for k,v in item.items() if k != 'time').next()
             data[field].append((time, value))
 
         self.parsed_exp_history = {
@@ -857,7 +857,7 @@ class BulkFast5(h5py.File):
         if location not in self:
             self.create_group(location)
         attrs = self[location].attrs
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if convert is not None:
                 attrs[k] = convert(v)
             else:
@@ -899,7 +899,7 @@ class BulkFast5(h5py.File):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
 
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
@@ -971,7 +971,7 @@ class BulkFast5(h5py.File):
     def set_voltage(self, data, meta):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
