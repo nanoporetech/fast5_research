@@ -622,7 +622,11 @@ class BulkFast5(h5py.File):
             1-0 bits: Number of channels from ASIC: '00' - 128ch,
                       '01'-256ch, '10' - 512ch
         """
-        waveform_enabled = ord(self["Device"]["AsicCommands"][cmd_index]["command"].tostring()[5]) & 4 != 0
+        waveform_flag = self["Device"]["AsicCommands"][cmd_index]["command"].tostring()[5]
+        # if cmd is not a bytestring, convert waveform flag to an integer. Needed for python2.x compatibility
+        if not isinstance(waveform_flag, int):
+            waveform_flag = ord(waveform_flag)
+        waveform_enabled = waveform_flag & 4 != 0
         return waveform_enabled
 
     def get_voltage(self, times=None, raw_indices=(None, None), use_scaling=True):
