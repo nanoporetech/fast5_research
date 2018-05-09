@@ -126,23 +126,23 @@ def build_mapping_table(events, ref_seq, post, scale, path, model):
                     'p_seq_pos', 'p_mp_pos', 'seq_pos', 'mp_pos', 'move', 'good_emission',
                     'kmer', 'mp_kmer']
     column_types = [float] * 12 + [int] * 3 + [bool] + [kmer_dtype] * 2
-    table = np.zeros(events.size, dtype=zip(column_names, column_types))
+    table = np.zeros(events.size, dtype=list(zip(column_names, column_types)))
 
     zero_start = events['start'] - events['start'][0]
 
     # Sequence position
     seq_pos = np.where(path >= 0, path, np.abs(path) - 1)
     seq_kmer = [kmer_index[x] for x in seq_pos]
-    seq_kmer_i = [np.where(model['kmer'] == kmer)[0][0] for kmer in seq_kmer]
+    seq_kmer_i = [np.where(model['kmer'].astype(str) == kmer)[0][0] for kmer in seq_kmer]
     table['seq_pos'] = seq_pos
     table['kmer'] = seq_kmer
-    table['p_seq_pos'] = post[xrange(post.shape[0]), seq_pos]
+    table['p_seq_pos'] = post[range(post.shape[0]), seq_pos]
     table['move'] = np.ediff1d(seq_pos, to_begin=[0])
     # Highest posterior positions
     mp_pos = np.argmax(post, axis=1)
     table['mp_pos'] = mp_pos
     table['mp_kmer'] = [kmer_index[x] for x in mp_pos]
-    table['p_mp_pos'] = post[xrange(post.shape[0]), table['mp_pos']]
+    table['p_mp_pos'] = post[range(post.shape[0]), table['mp_pos']]
     # The data
     for x in ('mean', 'start','length', 'stdv'):
         table[x] = events[x]
@@ -188,7 +188,7 @@ def build_mapping_summary_table(mapping_summary):
     column_names = ['name', 'direction', 'is_best', 'score', 'scale', 'shift', 'drift', 'scale_sd', 'var_sd', 'var', 'seq']
     column_types = ['|S{}'.format(max_len_name)] + ['|S{}'.format(max_len_direction)] + [bool] + [float] * 7 + ['|S{}'.format(max_len_seq)]
 
-    table = np.zeros(len(mapping_summary), dtype=zip(column_names, column_types))
+    table = np.zeros(len(mapping_summary), dtype=list(zip(column_names, column_types)))
     for table_line, summary_line, in zip(table,mapping_summary):
         table_line['name'] = summary_line['name']
         table_line['direction'] = summary_line['direction']
@@ -228,8 +228,8 @@ def create_basecall_1d_output(raw_events, scale, path, model, post=None):
     """
 
     events = raw_events.copy()
-    model_state = np.array(map (lambda x: model[x]['kmer'], path))
-    raw_model_level = np.array(map (lambda x: model[x]['level_mean'], path))
+    model_state = np.array(list(map(lambda x: model[x]['kmer'], path)))
+    raw_model_level = np.array(list(map(lambda x: model[x]['level_mean'], path)))
     move = np.array(list(kmer_overlap_gen(model_state)))
     counts = np.bincount(move)
     stays = counts[0]
@@ -421,7 +421,7 @@ def window(iterable, size):
     for i in range(1, size):
         for each in iters[i:]:
             next(each, None)
-    return zip(*iters)
+    return list(zip(*iters))
 
 def readtsv(fname, fields=None, **kwargs):
     """Read a tsv file into a numpy array with required field checking

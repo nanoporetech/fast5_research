@@ -67,7 +67,6 @@ class BulkFast5(h5py.File):
         :param filename: path to a bulk fast5 file.
         :param mode: h5py opening mode.
         """
-
         super(BulkFast5, self).__init__(filename, mode)
         if mode == 'r':
             data = self[self.__intermediate_data__]
@@ -100,7 +99,7 @@ class BulkFast5(h5py.File):
 
         if self.__channel_meta__.format(channel) in self:
             meta = dict(self[self.__channel_meta__.format(channel)].attrs)
-        elif self.has_raw(channel): # use raw meta data
+        elif self.has_raw(channel):  # use raw meta data
             meta = dict(self[self.__raw_meta__.format(channel)].attrs)
         else:
             meta = {}
@@ -526,7 +525,7 @@ class BulkFast5(h5py.File):
         if not hasattr(self, "enum_to_mux"):
             # Build a dict which relates enum values to mux.
             self.enum_to_mux = {}
-            for k, v in enum.iteritems():
+            for k, v in enum.items():
                 mux = 0
                 mo = re.search(r'(\d)$', k)
                 if mo is not None:
@@ -570,7 +569,6 @@ class BulkFast5(h5py.File):
         first_mux, last_mux = np.searchsorted(muxes['approx_raw_index'], raw_indices, side='right')
         return muxes[first_mux-1:last_mux]
 
-
     def get_waveform_timings(self):
         """Extract the timings of the waveforms (if any).
 
@@ -578,7 +576,7 @@ class BulkFast5(h5py.File):
         """
         mux_timings = []
         on_index = None
-        for i in xrange(0, len(self["Device"]["AsicCommands"])):
+        for i in range(0, len(self["Device"]["AsicCommands"])):
             if self._waveform_enabled(i):
                 on_index = self["Device"]["AsicCommands"][i]["frame_number"]
             elif on_index is not None:
@@ -590,7 +588,6 @@ class BulkFast5(h5py.File):
                 mux_timings.append((on_time, off_time))
                 on_index = None
         return mux_timings
-
 
     def _waveform_enabled(self, cmd_index):
         """
@@ -624,11 +621,13 @@ class BulkFast5(h5py.File):
                    1ms with values for bias voltage from LUT
             1-0 bits: Number of channels from ASIC: '00' - 128ch,
                       '01'-256ch, '10' - 512ch
-       """
-
-        return ord(str(self["Device"]["AsicCommands"
-                                      ][cmd_index]["command"])[5]) & 4 != 0
-
+        """
+        waveform_flag = self["Device"]["AsicCommands"][cmd_index]["command"].tostring()[5]
+        # if cmd is not a bytestring, convert waveform flag to an integer. Needed for python2.x compatibility
+        if not isinstance(waveform_flag, int):
+            waveform_flag = ord(waveform_flag)
+        waveform_enabled = waveform_flag & 4 != 0
+        return waveform_enabled
 
     def get_voltage(self, times=None, raw_indices=(None, None), use_scaling=True):
         """Extracts raw common electrode trace
@@ -658,7 +657,6 @@ class BulkFast5(h5py.File):
 
         return voltages
 
-
     def get_bias_voltage_changes(self):
         """Get changes in the bias voltage.
 
@@ -685,7 +683,6 @@ class BulkFast5(h5py.File):
 
         return self._cached_voltage_changes
 
-
     def _bias_from_asic_commands(self):
         """Extract voltages in Asic commands, filtering to only changes."""
 
@@ -708,7 +705,6 @@ class BulkFast5(h5py.File):
         voltage_changes['set_bias_voltage'] *= -5
         return voltage_changes
 
-
     def _bias_from_exp_hist(self):
         """Extract voltage changes from experimental history.
 
@@ -719,7 +715,6 @@ class BulkFast5(h5py.File):
         voltage_changes = self.parsed_exp_history['set_bias_voltage']
         voltage_changes['set_bias_voltage'] *= -1
         return voltage_changes
-
 
     def get_bias_voltage_changes_in_window(self, times=None, raw_indices=None):
         """Find all mux voltage changes within a time window.
@@ -744,7 +739,6 @@ class BulkFast5(h5py.File):
         first_index, last_index = np.searchsorted(bias_voltage_changes['time'], times, side='right')
         return bias_voltage_changes[first_index:last_index]
 
-
     __engine_states__ = {
         'minion_asic_temperature': float,
         'minion_heatsink_temperature': float,
@@ -753,13 +747,12 @@ class BulkFast5(h5py.File):
     }
     __temp_fields__ = ('heatsink', 'asic')
 
-
     def parse_history(self):
         """Parse the experimental history to pull out various environmental factors.
         The functions below are quite nasty, don't enquire too hard.
         """
         try:
-            exph_fh = StringIO(self['Meta/User']['experimental_history'][:].tostring())
+            exph_fh = StringIO(str(self['Meta/User']['experimental_history'][:].tostring().decode()))
         except Exception:
             raise RuntimeError('Cannot read experimental_history from fast5')
 
@@ -767,7 +760,7 @@ class BulkFast5(h5py.File):
         for item in self._iter_records(exph_fh):
             #item should contain 'time' and something else
             time = item['time']
-            field, value = ((k,v) for k,v in item.iteritems() if k != 'time').next()
+            field, value = next((k, v) for k, v in item.items() if k != 'time')
             data[field].append((time, value))
 
         self.parsed_exp_history = {
@@ -775,7 +768,6 @@ class BulkFast5(h5py.File):
             for k in data.keys()
         }
         return self
-
 
     def get_engine_state(self, state, time=None):
         """Get changes in an engine state or the value of an engine
@@ -797,13 +789,11 @@ class BulkFast5(h5py.File):
             i = np.searchsorted(states['time'], time) - 1
             return states[state][i]
 
-
     def get_temperature(self, time=None, field=__temp_fields__[0]):
         if field not in self.__temp_fields__:
             raise RuntimeError("'field' argument must be one of {}.".format(self.__temp_fields__))
 
         return self.get_engine_state('minion_{}_temperature'.format(field), time)
-
 
     def _iter_records(self, exph_fh):
         """Parse an iterator over file-like object representing
@@ -816,8 +806,7 @@ class BulkFast5(h5py.File):
                 rec = self._parse_line(msg)
                 if rec:
                     key, value = rec
-                    yield {'time': int(time), key:value}
-
+                    yield {'time': int(time), key: value}
 
     def _parse_line(self, msg):
         """Check if a line of experimental history records
@@ -839,7 +828,6 @@ class BulkFast5(h5py.File):
             if key in self.__engine_states__:
                 return key, value
 
-
     def _add_attrs(self, data, location, convert=None):
         """Convenience method for adding attrs to a possibly new group.
         :param data: dict of attrs to add
@@ -847,7 +835,6 @@ class BulkFast5(h5py.File):
         :param convert: function to apply to all dictionary values
         """
         self.__add_attrs(self, data, location, convert=None)
-
 
     @staticmethod
     def __add_attrs(self, data, location, convert=None):
@@ -857,7 +844,7 @@ class BulkFast5(h5py.File):
         if location not in self:
             self.create_group(location)
         attrs = self[location].attrs
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if convert is not None:
                 attrs[k] = convert(v)
             else:
@@ -865,7 +852,6 @@ class BulkFast5(h5py.File):
 
     def _add_numpy_table(self, data, location):
         self.create_dataset(location, data=data, compression=True)
-
 
     @classmethod
     def New(cls, fname, read='a', tracking_id={}, context_tags={}, channel_id={}):
@@ -889,7 +875,6 @@ class BulkFast5(h5py.File):
         # return instance from new file
         return cls(fname, read)
 
-
     def set_raw(self, raw, channel, meta=None):
         """Set the raw data in file.
 
@@ -899,7 +884,7 @@ class BulkFast5(h5py.File):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
 
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
@@ -971,7 +956,7 @@ class BulkFast5(h5py.File):
     def set_voltage(self, data, meta):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
@@ -991,7 +976,7 @@ class BulkFast5(h5py.File):
 class AsicBConfiguration(object):
     """Wrapper around the asicb configuration struct passed to the asicb over usb"""
     def __init__(self, config):
-        self.data = str(config)
+        self.data = config.tostring()
         # Interpret as bytes...
         self.bytes = np.frombuffer(self.data, dtype="u1")
         # ...with reverse bit order
@@ -1030,7 +1015,7 @@ class AsicBConfiguration(object):
 class AsicBCommand(object):
     """Wrapper around the asicb command structure"""
     def __init__(self, command):
-        self.data = str(command)
+        self.data = command.tostring()
         self._configuration = AsicBConfiguration(self.data[10:])
         self.bytes = np.frombuffer(self.data, dtype="u1")
 
