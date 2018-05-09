@@ -56,6 +56,7 @@ class BulkFast5Test(unittest.TestCase):
 
         found = self.fh.exp_metadata
         del found['script_options']
+        found = {k: v.decode() for k, v in found.items()}
 
         self.assertDictEqual(found, expected)
 
@@ -192,7 +193,13 @@ class BulkFast5Test(unittest.TestCase):
         }
         for key in ['event_index_start', 'event_index_end', 'classification',
                     'read_length', 'read_id']:
-            self.assertEqual(reads[2][key], expected[key])
+            real = reads[2][key]
+            exp = expected[key]
+            if isinstance(real, bytes):
+                self.assertEqual(real.decode(), exp)
+            else:
+                self.assertEqual(real, exp)
+
         for key in ['drift', 'median', 'median_dwell', 'range', 'read_start',
                     'median_sd']:
             self.assertAlmostEqual(reads[2][key], expected[key])
@@ -256,20 +263,20 @@ class BulkFast5Test(unittest.TestCase):
         inds = (3045000, 3930001)
         states = self.fh.get_states_in_window(self.fh.channels[0], raw_indices=inds)
         expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
-        assert np.all(states == expected)
+        assert np.all(states.astype(str) == expected.astype(str))
         states = self.fh.get_states_in_window(self.fh.channels[1], raw_indices=inds)
         expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
-        assert np.all(states == expected)
+        assert np.all(states.astype(str) == expected.astype(str))
 
     def test_get_states_in_window_by_times(self):
         """Test get_states_in_window using a window specified in times"""
         times = (3045000.0 / self.fh.sample_rate, 3930001.0 / self.fh.sample_rate)
         states = self.fh.get_states_in_window(self.fh.channels[0], times=times)
         expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
-        assert np.all(states == expected)
+        assert np.all(states.astype(str) == expected.astype(str))
         states = self.fh.get_states_in_window(self.fh.channels[1], times=times)
         expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
-        assert np.all(states == expected)
+        assert np.all(states.astype(str) == expected.astype(str))
 
 
 class BulkABFFast5Test(BulkFast5Test):
