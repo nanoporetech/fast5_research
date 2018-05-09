@@ -773,11 +773,7 @@ class BulkFast5(h5py.File):
         for item in self._iter_records(exph_fh):
             #item should contain 'time' and something else
             time = item['time']
-<<<<<<< HEAD
-            field, value = ((k,v) for k,v in item.items() if k != 'time').next()
-=======
             field, value = next((k, v) for k, v in item.items() if k != 'time')
->>>>>>> 29383da... improving python3/2 compatibility
             data[field].append((time, value))
 
         self.parsed_exp_history = {
