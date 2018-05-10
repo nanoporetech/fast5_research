@@ -228,8 +228,8 @@ def create_basecall_1d_output(raw_events, scale, path, model, post=None):
     """
 
     events = raw_events.copy()
-    model_state = np.array(map (lambda x: model[x]['kmer'], path))
-    raw_model_level = np.array(map (lambda x: model[x]['level_mean'], path))
+    model_state = np.array([model[x]['kmer'] for x in path])
+    raw_model_level = np.array([model[x]['level_mean'] for x in path])
     move = np.array(list(kmer_overlap_gen(model_state)))
     counts = np.bincount(move)
     stays = counts[0]
