@@ -22,7 +22,7 @@ from fast5_research.util import mad
 from fast5_research.util import docstring_parameter
 from fast5_research.util import readtsv
 
-from fast5_research.util import validate_event_table, validate_model_table, validate_scale_object
+from fast5_research.util import validate_event_table, validate_model_table, validate_scale_object, _clean_attrs
 from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred
 
 warnings.simplefilter("always", DeprecationWarning)
@@ -48,10 +48,9 @@ class Fast5(h5py.File):
 
     __default_event_path__ = 'Reads'
 
-    __default_basecall_2d_analysis__ = 'Basecall_2D'
     __default_basecall_1d_analysis__ = 'Basecall_1D'
 
-    __default_seq_section__ = '2D'
+    __default_seq_section__ = 'template'
     __default_basecall_fastq__ = 'BaseCalled_{}/Fastq'
     __default_basecall_1d_events__ = 'BaseCalled_{}/Events'
     __default_basecall_1d_model__ = 'BaseCalled_{}/Model'
@@ -59,7 +58,7 @@ class Fast5(h5py.File):
 
     __default_alignment_analysis__ = 'Alignment'
 
-    __default_hairpin_split_analysis__= 'Hairpin_Split'
+    __default_split_analysis__= 'Hairpin_Split'
     __default_section__ = 'template'
 
     __default_mapping_analysis__ = 'Squiggle_Map'
@@ -79,12 +78,13 @@ class Fast5(h5py.File):
     __default_engine_state_path__ = '/EngineStates/'
     __temp_fields__ = ('heatsink', 'asic')
 
+
     def __init__(self, fname, read='r'):
 
         super(Fast5, self).__init__(fname, read)
 
         # Attach channel_meta as attributes, slightly redundant
-        for k, v in self[self.__channel_meta_path__].attrs.items():
+        for k, v in _clean_attrs(self[self.__channel_meta_path__].attrs).items():
             setattr(self, k, v)
         # Backward compat.
         self.sample_rate = self.sampling_rate
@@ -94,6 +94,7 @@ class Fast5(h5py.File):
         self.name_short = self.filename_short
         if short_name_match:
             self.name_short = short_name_match.group()
+
 
     @classmethod
     def New(cls, fname, read='a', tracking_id={}, context_tags={}, channel_id={}):
@@ -133,6 +134,7 @@ class Fast5(h5py.File):
         # return instance from new file
         return cls(fname, read)
 
+
     def _add_attrs(self, data, location, convert=None):
         """Convenience method for adding attrs to a possibly new group.
         :param data: dict of attrs to add
@@ -140,6 +142,7 @@ class Fast5(h5py.File):
         :param convert: function to apply to all dictionary values
         """
         self.__add_attrs(self, data, location, convert=None)
+
 
     @staticmethod
     def __add_attrs(self, data, location, convert=None):
@@ -155,19 +158,24 @@ class Fast5(h5py.File):
             else:
                 attrs[k] = v
 
+
     def _add_string_dataset(self, data, location):
         assert type(data) == str, 'Need to supply a string'
         self.create_dataset(location, data=data)
 
+
     def _add_numpy_table(self, data, location):
         self.create_dataset(location, data=data, compression=True)
+
 
     def _add_event_table(self, data, location):
         validate_event_table(data)
         self._add_numpy_table(data, location)
 
+
     def _join_path(self, *args):
         return '/'.join(args)
+
 
     @property
     def writable(self):
@@ -177,26 +185,31 @@ class Fast5(h5py.File):
         else:
             return True
 
+
     def assert_writable(self):
         assert self.writable, "File not writable, opened with {}.".format(self.mode)
+
 
     @property
     def channel_meta(self):
         """Channel meta information as python dict"""
-        return dict(self[self.__channel_meta_path__].attrs)
+        return _clean_attrs(self[self.__channel_meta_path__].attrs)
+
 
     @property
     def tracking_id(self):
         """Tracking id meta information as python dict"""
-        return dict(self[self.__tracking_id_path__].attrs)
+        return _clean_attrs(self[self.__tracking_id_path__].attrs)
+
 
     @property
     def attributes(self):
         """Attributes for a read, assumes one read in file"""
         try:
-            return dict(self.get_read(group=True).attrs)
+            return _clean_attrs(self.get_read(group=True).attrs)
         except IndexError:
-            return dict(self.get_read(group=True, raw=True).attrs)
+            return _clean_attrs(self.get_read(group=True, raw=True).attrs)
+
 
     def summary(self, rename=True, delete=True, scale=True):
         """A read summary, assumes one read in file"""
@@ -234,6 +247,7 @@ class Fast5(h5py.File):
 
         return data
 
+
     def strip_analyses(self, keep=('{}_000'.format(__event_detect_name__), __raw_name_old__)):
         """Remove all analyses from file
 
@@ -244,6 +258,7 @@ class Fast5(h5py.File):
         for name in analyses.keys():
             if name not in keep:
                 del analyses[name]
+
 
     def repack(self, pack_opts=''):
         """Run h5repack on the current file. Returns a fresh object."""
@@ -279,7 +294,7 @@ class Fast5(h5py.File):
             it = reads.keys()
         else:
             it = (k for k in reads.keys()
-                  if reads[k].attrs['read_number'] in read_numbers)
+                  if _clean_attrs(reads[k].attrs)['read_number'] in read_numbers)
 
         if group == 'all':
             for read in it:
@@ -475,7 +490,7 @@ class Fast5(h5py.File):
         )
         try:
             raw = self[self.__raw_signal_path_old__]
-            meta = self[self.__raw_meta_path_old__].attrs
+            meta = _clean_attrs(self[self.__raw_meta_path_old__].attrs)
         except KeyError:
             raise KeyError('No raw data available.')
 
@@ -501,14 +516,14 @@ class Fast5(h5py.File):
         # Attempt to guess read_number
         if read_number is None:
             if sum(1 for _ in self.get_reads()) == 1:
-                read_number = self.get_read(group=True).attrs['read_number']
+                read_number = _clean_attrs(self.get_read(group=True).attrs)['read_number']
             else:
                 raise RuntimeError("'read_number' not given and cannot guess.")
 
         # Attempt to guess meta
         if meta is None:
             try:
-                meta = dict(self.get_read(group=True, read_number=read_number).attrs)
+                meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
             except KeyError:
                 raise RuntimeError("'meta' not given and cannot guess.")
 
@@ -535,7 +550,7 @@ class Fast5(h5py.File):
         self._convert_meta_times(meta)
         # Check meta is same as that for event data, if any
         try:
-            event_meta = dict(self.get_read(group=True, read_number=read_number).attrs)
+            event_meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
         except:
             pass
         else:
@@ -607,6 +622,7 @@ class Fast5(h5py.File):
         except (IndexError, KeyError):
             raise IndexError('No analyses with name {} present.'.format(name))
 
+
     def get_analysis_new(self, name):
         """Get group path for new analysis with a given base name.
 
@@ -625,6 +641,7 @@ class Fast5(h5py.File):
             )
             counter = 0
         return '{}_{:03d}'.format(root, counter)
+
 
     def get_model(self, section=__default_section__, analysis=__default_mapping_analysis__):
         """Get model used for squiggle mapping"""
@@ -658,6 +675,7 @@ class Fast5(h5py.File):
             i = np.searchsorted(states['time'], time) - 1
             return states[state][i]
 
+
     @docstring_parameter(__default_engine_state_path__, __temp_fields__)
     def get_temperature(self, time=None, field=__temp_fields__[0]):
         """Retrieve temperature data from {}, either across the whole read
@@ -671,6 +689,7 @@ class Fast5(h5py.File):
             raise RuntimeError("'field' argument must be one of {}.".format(self.__temp_fields__))
 
         return self.get_engine_state('minion_{}_temperature'.format(field), time)
+
 
     def set_engine_state(self, data):
         """Set the engine state data.
@@ -693,11 +712,11 @@ class Fast5(h5py.File):
 
 
     ###
-    # Template/complement splitting data
+    # Template/adapater splitting data
     __split_summary_location__ = '/Summary/split_hairpin'
 
     @docstring_parameter(__base_analysis__)
-    def set_split_data(self, data, analysis=__default_hairpin_split_analysis__):
+    def set_split_data(self, data, analysis=__default_split_analysis__):
         """Write a dict containing split point data.
 
         :param data: `dict`-like object containing attrs to add
@@ -712,9 +731,10 @@ class Fast5(h5py.File):
         )
         self._add_attrs(data, location)
 
+
     @docstring_parameter(__base_analysis__)
-    def get_split_data(self, analysis=__default_hairpin_split_analysis__):
-        """Get template-complement segmentation data.
+    def get_split_data(self, analysis=__default_split_analysis__):
+        """Get signal segmentation data.
 
         :param analysis: Base analysis name (under {})
         """
@@ -723,16 +743,17 @@ class Fast5(h5py.File):
             self.get_analysis_latest(analysis), self.__split_summary_location__
         )
         try:
-            return dict(self[location].attrs)
+            return _clean_attrs(self[location].attrs)
         except:
             raise ValueError(
-                'Could not retrieve template-complement split point data from attributes of {}'.format(location)
+                'Could not retrieve signal split point data from attributes of {}'.format(location)
             )
 
+
     @docstring_parameter(__base_analysis__)
-    def get_section_indices(self, analysis=__default_hairpin_split_analysis__):
-        """Get two tuples indicating the event indices for the template and
-        complement boundaries.
+    def get_section_indices(self, analysis=__default_split_analysis__):
+        """Get two tuples indicating the event indices for signal
+        segmentation boundaries.
 
         :param analysis: Base analysis path (under {})
         """
@@ -747,11 +768,12 @@ class Fast5(h5py.File):
                 (attrs['start_index_comp'], attrs['end_index_comp'])
             )
         except:
-            raise ValueError('Could not retrieve template-complement segmentation data.')
+            raise ValueError('Could not retrieve signal segmentation data.')
+
 
     @docstring_parameter(__base_analysis__)
-    def get_section_events(self, section, analysis=__default_hairpin_split_analysis__):
-        """Get the template event data.
+    def get_section_events(self, section, analysis=__default_split_analysis__):
+        """Get the event data for a signal section
 
         :param analysis: Base analysis path (under {})
         """
@@ -769,8 +791,10 @@ class Fast5(h5py.File):
             )
         return events
 
+
     ###
     # 1D Basecalling data
+
     @docstring_parameter(__base_analysis__)
     def set_basecall_data(self, events, scale, path, model, seq,
                           section=__default_section__, name='unknown',
@@ -786,7 +810,7 @@ class Fast5(h5py.File):
         :param path: Viterbi path containing model pointers (1D np.array).
         :param model: Model object.
         :param seq: Basecalled sequence string for fastq.
-        :param section: String to use in paths, e.g. 'template' or 'complement'.
+        :param section: String to use in paths, e.g. 'template'.
         :param name: Identifier string for fastq.
         :param post: Numpy 2D array containing the posteriors (event, state), used to annotate events.
         :param score: Quality value for the whole strand.
@@ -848,11 +872,12 @@ class Fast5(h5py.File):
         self._add_numpy_table(model, model_path)
         self._add_attrs(scale_meta, model_path)
 
+
     @docstring_parameter(__base_analysis__)
     def get_basecall_data(self, section=__default_section__, analysis=__default_basecall_1d_analysis__):
         """Read the annotated basecall_1D events from the fast5 file.
 
-        :param section: String to use in paths, e.g. 'template' or 'complement'.
+        :param section: String to use in paths, e.g. 'template'.
         :param analysis: Base analysis name (under {})
         """
 
@@ -869,7 +894,7 @@ class Fast5(h5py.File):
     def get_alignment_attrs(self, section=__default_section__, analysis=__default_alignment_analysis__):
         """Read the annotated alignment meta data from the fast5 file.
 
-        :param section: String to use in paths, e.g. 'template' or 'complement'.
+        :param section: String to use in paths, e.g. 'template'.
         :param analysis: Base analysis name (under {})
 
         """
@@ -879,7 +904,7 @@ class Fast5(h5py.File):
         attr_path = self._join_path(base,
             self.__default_basecall_alignment_summary__.format(section))
         try:
-            attrs = dict(self[attr_path].attrs)
+            attrs = _clean_attrs(self[attr_path].attrs)
         except:
             raise ValueError('Could not retrieve alignment attributes from {}'.format(attr_path))
 
@@ -903,7 +928,7 @@ class Fast5(h5py.File):
             Negative values will be interpreted as "bad emissions".
         :param model: Model object to use.
         :param seq: String representation of the reference sequence.
-        :param section: Section of strand, e.g. 'template' or 'complement'.
+        :param section: Section of strand, e.g. 'template'.
         :param name: Reference name.
         :param post: Two-dimensional :class:`np.ndarray` containing posteriors.
         :param score: Mapping quality score.
@@ -966,6 +991,7 @@ class Fast5(h5py.File):
         # Write summary
         self._add_attrs(results, summary_path)
 
+
     @docstring_parameter(__base_analysis__)
     def get_mapping_data(self, section=__default_section__, analysis=__default_mapping_analysis__, get_model=False):
         """Read the annotated mapping events from the fast5 file.
@@ -974,7 +1000,7 @@ class Fast5(h5py.File):
             The seq_pos column for the events table returned from basecall_mapping is
             adjusted to be the genome position (consistent with squiggle_mapping)
 
-        :param section: String to use in paths, e.g. 'template' or 'complement'.
+        :param section: String to use in paths, e.g. 'template'.
         :param analysis: Base analysis name (under {}). For basecall mapping
             use analysis = 'AlignToRef'.
         """
@@ -1049,11 +1075,12 @@ class Fast5(h5py.File):
         else:
             return events
 
+
     def get_any_mapping_data(self, section=__default_section__, attrs_only=False, get_model=False):
         """Convenience method for extracting whatever mapping data might be
         present, favouring squiggle_mapping output over basecall_mapping.
 
-        :param section: (Probably) one of '2D', 'template', or 'complement'
+        :param section: (Probably) 'template'
         :param attrs_only: Use attrs_only=True to return mapping attributes without events
 
         :returns: the tuple (events, attrs) or attrs only
@@ -1091,7 +1118,7 @@ class Fast5(h5py.File):
         Names which are inconsistent between squiggle_mapping and basecall_mapping are added to
         basecall_mapping (thus duplicating the attributes in basecall mapping).
 
-        :param section: String to use in paths, e.g. 'template' or 'complement'.
+        :param section: String to use in paths, e.g. 'template'.
         :param analysis: Base analysis name (under {})
                          For basecall mapping use analysis = 'Alignment'
         """
@@ -1102,7 +1129,7 @@ class Fast5(h5py.File):
             base = self.get_analysis_latest(analysis)
             attr_path = self._join_path(base, self.__default_mapping_summary__.format(section))
             try:
-                attrs = dict(self[attr_path].attrs)
+                attrs = _clean_attrs(self[attr_path].attrs)
             except:
                 raise ValueError('Could not retrieve squiggle_mapping meta data from {}'.format(attr_path))
         else:
@@ -1112,7 +1139,7 @@ class Fast5(h5py.File):
             base = self.get_analysis_latest(self.__default_basecall_mapping_analysis__)
             attr_path = self._join_path(base, self.__default_basecall_mapping_summary__.format(section))
             try:
-                attrs = dict(self[attr_path].attrs)
+                attrs = _clean_attrs(self[attr_path].attrs)
             except:
                 raise ValueError('Could not retrieve basecall_mapping meta data from {}'.format(attr_path))
 
@@ -1129,7 +1156,7 @@ class Fast5(h5py.File):
             attr_path = self._join_path(
                 base, self.__default_basecall_alignment_summary__.format(section))
             try:
-                genome = self[attr_path].attrs.get('genome')
+                genome = _clean_attrs(self[attr_path].attrs)['genome']
             except:
                 raise ValueError('Could not retrieve basecall_mapping genome field from {}'.format(attr_path))
             try:
@@ -1162,11 +1189,11 @@ class Fast5(h5py.File):
     # Sequence data
 
     @docstring_parameter(__base_analysis__)
-    def get_fastq(self, analysis=__default_basecall_2d_analysis__, section=__default_seq_section__, custom=None):
+    def get_fastq(self, analysis=__default_basecall_1d_analysis__, section=__default_seq_section__, custom=None):
         """Get the fastq (sequence) data.
 
         :param analysis: Base analysis name (under {})
-        :param section: (Probably) one of '2D', 'template', or 'complement'
+        :param section: (Probably) 'template'
         :param custom: Custom hdf path overriding all of the above.
         """
 
@@ -1181,9 +1208,9 @@ class Fast5(h5py.File):
         try:
             return self[location][()]
         except:
-            # Did we get given section != 2D and no analysis, that's
+            # Did we get given section != template and no analysis, that's
             #    more than likely incorrect. Try alternative analysis
-            if section != self.__default_seq_section__ and analysis == self.__default_basecall_2d_analysis__:
+            if section != self.__default_seq_section__ and analysis == self.__default_basecall_1d_analysis__:
                 location = self._join_path(
                     self.get_analysis_latest(__default_basecall_1d_analysis__),
                     __default_basecall_fastq__.format(section)
@@ -1201,7 +1228,7 @@ class Fast5(h5py.File):
         """Get SAM (alignment) data.
 
         :param analysis: Base analysis name (under {})
-        :param section: (Probably) one of '2D', 'template', or 'complement'
+        :param section: (Probably) 'template'
         :param custom: Custom hdf path overriding all of the above.
         """
 
@@ -1222,7 +1249,7 @@ class Fast5(h5py.File):
         """Get fasta sequence of known DNA fragment for the read.
 
         :param analysis: Base analysis name (under {})
-        :param section: (Probably) one of '2D', 'template', or 'complement'
+        :param section: (Probably) 'template'
         :param custom: Custom hdf path overriding all of the above.
         """
 
@@ -1320,19 +1347,19 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
 
 
 def _type_meta(meta, types):
-        """Convert meta data fields into required types.
-        :param meta: dict of values
-        :param: types: dict of types or `np.dtype`
+    """Convert meta data fields into required types.
+    :param meta: dict of values
+    :param: types: dict of types or `np.dtype`
 
-        :returns: dict
-        """
+    :returns: dict
+    """
 
-        converted = {k:v for k,v in meta.items()}
-        for k, dtype in types.items():
-            if k in meta:
-                if isinstance(dtype, np.dtype):
-                    val = np.array([meta[k]], dtype=dtype)[0]
-                else:
-                    val = dtype(meta[k])
-                converted[k] = val
-        return converted
+    converted = {k:v for k,v in meta.items()}
+    for k, dtype in types.items():
+        if k in meta:
+            if isinstance(dtype, np.dtype):
+                val = np.array([meta[k]], dtype=dtype)[0]
+            else:
+                val = dtype(meta[k])
+            converted[k] = val
+    return converted
