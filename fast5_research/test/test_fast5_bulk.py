@@ -255,20 +255,21 @@ class BulkFast5Test(unittest.TestCase):
         """Test get_states_in_window using a window specified in raw indices"""
         inds = (3045000, 3930001)
         states = self.fh.get_states_in_window(self.fh.channels[0], raw_indices=inds)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='U28')
+
         assert np.all(states == expected)
         states = self.fh.get_states_in_window(self.fh.channels[1], raw_indices=inds)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='U28')
         assert np.all(states == expected)
 
     def test_get_states_in_window_by_times(self):
         """Test get_states_in_window using a window specified in times"""
         times = (3045000.0 / self.fh.sample_rate, 3930001.0 / self.fh.sample_rate)
         states = self.fh.get_states_in_window(self.fh.channels[0], times=times)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='U28')
         assert np.all(states == expected)
         states = self.fh.get_states_in_window(self.fh.channels[1], times=times)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='U28')
         assert np.all(states == expected)
 
 
@@ -333,19 +334,16 @@ class BulkABFFast5Test(BulkFast5Test):
 
     def test_raw_data_raises_exception_if_absent(self):
         """Test parsing raw data from a channel without raw data raises an exception."""
-
         with self.assertRaises(KeyError):
             self.fh.get_raw(2)
 
     def test_parse_raw_data(self):
         """Test parsing the whole raw dataset"""
-
         raw = self.fh.get_raw(self.fh.channels[0])
         self.assertEqual(len(raw), 10000)
 
     def test_parse_event_data_len(self):
         """Test parsing the whole event dataset"""
-
         events = self.fh.get_events(self.fh.channels[0])
         self.assertEqual(len(events), 5)
 

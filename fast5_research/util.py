@@ -1,21 +1,19 @@
-"""Some Input/Output helpers."""
+from copy import deepcopy
+from itertools import tee
 from math import pow, log10
+import sys
+
 import numpy as np
 import numpy.lib.recfunctions as nprf
-from itertools import tee
-from copy import deepcopy
-#from untangled.iterators import window
-#from untangled.bio import seq_to_kmers
 
 def qstring_to_phred(quality):
-    """ Compute standard phred scores from a quality string.
-    Taken from dragonet.bio.seq_tools"""
+    """Compute standard phred scores from a quality string."""
     qscores = [ord(q) - 33 for q in quality]
     return qscores
 
 
 def mean_qscore(scores):
-    """ Returns the phred score corresponding to the mean of the probabilities
+    """Returns the phred score corresponding to the mean of the probabilities
     associated with the phred scores provided. Taken from chimaera.common.utilities.
 
 
@@ -34,7 +32,7 @@ def mean_qscore(scores):
 
 
 def kmer_overlap_gen(kmers, moves=None):
-    """ From a list of kmers return the character shifts between them.
+    """From a list of kmers return the character shifts between them.
     (Movement from i to i+1 entry, e.g. [AATC,ATCG] returns [0,1]).
     Allowed moves may be specified in moves argument in order of preference.
     Taken from dragonet.bio.seq_tools
@@ -73,7 +71,7 @@ def kmer_overlap_gen(kmers, moves=None):
 
 
 def build_mapping_table(events, ref_seq, post, scale, path, model):
-    """ Build a mapping table based on output of a dragonet.mapper style object.
+    """Build a mapping table based on output of a dragonet.mapper style object.
     Taken from chimaera.common.utilities.
 
     :param events: Numpy record array of events. Must contain the mean,
@@ -161,11 +159,12 @@ def build_mapping_table(events, ref_seq, post, scale, path, model):
 
 
 def build_mapping_summary_table(mapping_summary):
-    """ Build a mapping summary table
+    """Build a mapping summary table
 
-    : param mapping_summary: List of curr_map dictionaries
+    :param mapping_summary: List of curr_map dictionaries
 
-    : returns: Numpy record array containing summary contents. One record per array element of mapping_summary
+    :returns: Numpy record array containing summary contents. One record per array element of mapping_summary
+
     """
     # Set memory allocation for variable length strings
     # This works, but there must be a better way
@@ -267,6 +266,7 @@ def create_basecall_1d_output(raw_events, scale, path, model, post=None):
 
     return table, results
 
+
 def create_mapping_output(raw_events, scale, path, model, seq, post=None, n_states=None, is_reverse=False, substates=False):
     """Create the annotated event table and summaries similiar to chimaera
 
@@ -332,6 +332,7 @@ def create_mapping_output(raw_events, scale, path, model, seq, post=None, n_stat
 
     return table, results
 
+
 class MockZeroArray(np.ndarray):
     def __init__(self, shape):
         """Mock enough of ndarray interface to be passable as a posterior matrix
@@ -343,6 +344,7 @@ class MockZeroArray(np.ndarray):
 
     def argmax(self, axis=0):
         return np.zeros(self.shape[1-axis], dtype=int)
+
 
 def validate_event_table(table):
     """Check if an object contains all columns of a basic event array."""
@@ -358,6 +360,7 @@ def validate_event_table(table):
             )
         )
 
+
 def validate_model_table(table):
     """Check if an object contains all columns of a dragonet Model."""
     if not isinstance(table, np.ndarray):
@@ -371,12 +374,14 @@ def validate_model_table(table):
             )
         )
 
+
 def validate_scale_object(obj):
     """Check if an object contains all attributes of dragonet Scaler."""
 
     req_attributes = ['shift', 'scale', 'drift', 'var', 'scale_sd', 'var_sd']
     msg = 'Object does not contain attributes required for Scaler: {}'.format(req_attributes)
     assert all([hasattr(obj, attr) for attr in req_attributes]), msg
+
 
 def compute_movement_stats(path):
     """Compute movement stats from a mapping state path
@@ -393,8 +398,9 @@ def compute_movement_stats(path):
 
     return move, stays, skips
 
+
 def seq_to_kmers(seq, length):
-    """ Turn a string into a list of (overlapping) kmers.
+    """Turn a string into a list of (overlapping) kmers.
 
     e.g. perform the transformation:
 
@@ -406,6 +412,7 @@ def seq_to_kmers(seq, length):
     :returns: A list of overlapping kmers
     """
     return [seq[x:x + length] for x in range(0, len(seq) - length + 1)]
+
 
 def window(iterable, size):
     """Create an iterator returning a sliding window from another iterator
@@ -422,6 +429,7 @@ def window(iterable, size):
         for each in iters[i:]:
             next(each, None)
     return list(zip(*iters))
+
 
 def readtsv(fname, fields=None, **kwargs):
     """Read a tsv file into a numpy array with required field checking
@@ -440,12 +448,14 @@ def readtsv(fname, fields=None, **kwargs):
     #  Numpy tricks to force single element to be array of one row
     return table.reshape(-1)
 
+
 def docstring_parameter(*sub):
     """Allow docstrings to contain parameters."""
     def dec(obj):
         obj.__doc__ = obj.__doc__.format(*sub)
         return obj
     return dec
+
 
 def med_mad(data, factor=None, axis=None, keepdims=False):
     """Compute the Median Absolute Deviation, i.e., the median
@@ -472,6 +482,7 @@ def med_mad(data, factor=None, axis=None, keepdims=False):
         dmad = dmad.squeeze(axis)
     return dmed, dmad
 
+
 def mad(data, factor=None, axis=None, keepdims=False):
     """Compute the Median Absolute Deviation, i.e., the median
     of the absolute deviations from the median, and (by default)
@@ -488,6 +499,7 @@ def mad(data, factor=None, axis=None, keepdims=False):
     """
     _ , dmad = med_mad(data, factor=factor, axis=axis, keepdims=keepdims)
     return dmad
+
 
 def file_has_fields(fname, fields=None):
     """Check that a tsv file has given fields
@@ -520,6 +532,7 @@ def file_has_fields(fname, fields=None):
         has_fields = req_fields.issubset(present_fields)
     return has_fields
 
+
 def get_changes(data, ignore_cols=None, use_cols=None):
     """Return only rows of a structured array which are not equal to the previous row.
 
@@ -538,3 +551,70 @@ def get_changes(data, ignore_cols=None, use_cols=None):
     changed_inds = np.where(data[cols][1:] != data[cols][:-1])[0] + 1
     changed_inds = [0] + [i for i in changed_inds]
     return data[(changed_inds,)]
+
+
+def _clean(value):
+    """Convert numpy numeric types to their python equivalents."""
+    if isinstance(value, np.ndarray):
+        if value.dtype.kind == 'S':
+            return np.char.decode(value).tolist()
+        else:
+            return value.tolist()
+    elif type(value).__module__ == np.__name__:
+        conversion = np.asscalar(value)
+        if sys.version_info.major == 3 and isinstance(conversion, bytes):
+            conversion = conversion.decode()
+        return conversion
+    elif sys.version_info.major == 3 and isinstance(value, bytes):
+        return value.decode()
+    else:
+        return value
+
+
+def _clean_attrs(attrs):
+    return {_clean(k): _clean(v) for k, v in attrs.items()}
+
+
+def _sanitize_data_for_writing(data):
+    # We only really need to do interesting conversions for python3
+    if sys.version_info.major == 3:
+        if isinstance(data, str):
+            return data.encode()
+        elif isinstance(data, np.ndarray) and data.dtype.kind == np.dtype(np.unicode):
+            return data.astype('S')
+        elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
+            dtypes = data.dtype.descr
+            for index, entry in enumerate(dtypes):
+                if entry[1].startswith('<U'):
+                    # numpy.astype can't handle empty string datafields for some
+                    # reason, so we'll explicitly state that.
+                    if len(entry[1]) <= 2 or (len(entry[1]) == 3 and
+                                              entry[1][2] == '0'):
+                        raise TypeError('Empty datafield {} cannot be converted'
+                                        ' by np.astype.'.format(entry[0]))
+                    dtypes[index] = (entry[0], '|S{}'.format(entry[1][2:]))
+            return data.astype(dtypes)
+    return data
+
+
+def _sanitize_data_for_reading(data):
+    # This is all python 3 conversions, where we need to check for byte strings
+    if sys.version_info.major == 3:
+        if isinstance(data, bytes):
+            return data.decode()
+        elif isinstance(data, np.ndarray) and data.dtype.kind == 'S':
+            return np.char.decode(data)
+        elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
+            dtypes = data.dtype.descr
+            for index, entry in enumerate(dtypes):
+                if entry[1].startswith('|S'):
+                    # numpy.astype can't handle empty datafields for some
+                    # reason, so we'll explicitly state that.
+                    if len(entry[1]) <= 2 or (len(entry[1]) == 3 and
+                                              entry[1][2] == '0'):
+                        raise TypeError('Empty datafield {} cannot be converted'
+                                        ' by np.astype.'.format(entry[0]))
+                    dtypes[index] = (entry[0], '<U{}'.format(entry[1][2:]))
+            return data.astype(dtypes)
+    return data
+
