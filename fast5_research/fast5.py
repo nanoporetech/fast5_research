@@ -152,7 +152,7 @@ class Fast5(h5py.File):
         if location not in self:
             self.create_group(location)
         attrs = self[location].attrs
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if convert is not None:
                 attrs[k] = convert(v)
             else:

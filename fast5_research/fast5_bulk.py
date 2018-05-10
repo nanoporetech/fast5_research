@@ -14,7 +14,7 @@ import numpy as np
 from numpy.lib.recfunctions import append_fields
 
 
-from fast5_research.util import get_changes
+from fast5_research.util import get_changes, _clean_attrs, _sanitize_data_for_writing, _sanitize_data_for_reading
 
 if version_info[0] < 3:
     from StringIO import StringIO
@@ -78,7 +78,7 @@ class BulkFast5(h5py.File):
             self.exp_metadata = dict()
             for path in (self.__tracking_path__, self.__context_path__):
                 try:
-                    self.exp_metadata.update(dict(self[path].attrs))
+                    self.exp_metadata.update(_clean_attrs(self[path].attrs))
                 except KeyError:
                     raise KeyError('Cannot read summary from {}'.format(path))
 
@@ -87,6 +87,7 @@ class BulkFast5(h5py.File):
                 self.sample_rate = float(self['Meta'].attrs['sample_rate'])
             except:
                 self.sample_rate = float(self.get_metadata(self.channels[0])['sample_rate'])
+
 
     def get_metadata(self, channel):
         """Get the metadata for the specified channel.
@@ -99,14 +100,15 @@ class BulkFast5(h5py.File):
             self._cached_metadata = {}
 
         if self.__channel_meta__.format(channel) in self:
-            meta = dict(self[self.__channel_meta__.format(channel)].attrs)
+            meta = _clean_attrs(self[self.__channel_meta__.format(channel)].attrs)
         elif self.has_raw(channel): # use raw meta data
-            meta = dict(self[self.__raw_meta__.format(channel)].attrs)
+            meta = _clean_attrs(self[self.__raw_meta__.format(channel)].attrs)
         else:
             meta = {}
 
         self._cached_metadata[channel] = meta
         return meta
+
 
     def get_event_detection_parameters(self):
         """Get the full set of parameters related to event detection """
@@ -121,12 +123,12 @@ class BulkFast5(h5py.File):
 
     def get_tracking_meta(self):
         """Get tracking meta data"""
-        return dict(self[self.__tracking_path__].attrs)
+        return _clean_attrs(self[self.__tracking_path__].attrs)
 
 
     def get_context_meta(self):
         """Get context meta"""
-        return dict(self[self.__context_path__].attrs)
+        return _clean_attrs(self[self.__context_path__].attrs)
 
 
     def has_raw(self, channel):
@@ -249,7 +251,7 @@ class BulkFast5(h5py.File):
             raw_indices = self._time_interval_to_index(channel, times)
         if raw_indices is not None:
             event_indices = np.searchsorted(ev['start'], raw_indices)
-        data = ev[event_indices[0]:event_indices[1]]
+        data = _sanitize_data_for_reading(ev[event_indices[0]:event_indices[1]])
 
         # Change variance to stdv column
         data['variance'] = np.sqrt(data['variance'])
@@ -300,7 +302,7 @@ class BulkFast5(h5py.File):
 
         # classification is enumerated
         enum_map = h5py.check_dtype(enum=read_data.dtype['classification'])
-        classes = {v:k for k, v in enum_map.items()}
+        classes = _clean_attrs({v:k for k, v in enum_map.items()})
         # read dataset into memory, lest we return h5py objects
         read_data = read_data[()]
 
@@ -330,7 +332,7 @@ class BulkFast5(h5py.File):
                     for k in accum_stats:  # replace
                         row_details[k] = accum_stats[k]
                     row_details['classification'] = classes[row_details['classification']]
-                    yield row_details
+                    yield _clean_attrs(row_details)
                     accum_stats = None
 
 
@@ -352,7 +354,7 @@ class BulkFast5(h5py.File):
         col = 'summary_state'
         data = self[self.__state_data__.format(channel)]
         enum_map = h5py.check_dtype(enum=data.dtype[col])
-        enum_to_state = {v: k for k, v in enum_map.items()}
+        enum_to_state = _clean_attrs({v:k for k, v in enum_map.items()})
 
         # translate ints into strings
         states = np.array([enum_to_state[key] for key in data[col]])
@@ -373,7 +375,7 @@ class BulkFast5(h5py.File):
                                          ('approx_raw_index_end', '<u8'),
                                          ('summary_state', 'S28')])
         self._cached_state_changes[channel] = data
-        return data
+        return _sanitize_data_for_reading(data)
 
 
     def get_state(self, channel, raw_index=None, time=None):
@@ -477,6 +479,7 @@ class BulkFast5(h5py.File):
         else:
             return mux
 
+
     @staticmethod
     def _strip_metadata(data):
         """Strip dtype.metadata dicts from enumerated arrays.
@@ -520,13 +523,13 @@ class BulkFast5(h5py.File):
         enum_col = 'well_id'
         multiplex_data = self.__multiplex_data__.format(channel)
         data = self[multiplex_data]
-        enum = h5py.check_dtype(enum=data.dtype[enum_col])
+        enum = _clean_attrs(h5py.check_dtype(enum=data.dtype[enum_col]))
         assert enum == self.__mk1_asic_mux_states__, 'Got unexpected multiplex states'
 
         if not hasattr(self, "enum_to_mux"):
             # Build a dict which relates enum values to mux.
             self.enum_to_mux = {}
-            for k, v in enum.iteritems():
+            for k, v in enum.items():
                 mux = 0
                 mo = re.search(r'(\d)$', k)
                 if mo is not None:
@@ -578,7 +581,7 @@ class BulkFast5(h5py.File):
         """
         mux_timings = []
         on_index = None
-        for i in xrange(0, len(self["Device"]["AsicCommands"])):
+        for i in range(0, len(self["Device"]["AsicCommands"])):
             if self._waveform_enabled(i):
                 on_index = self["Device"]["AsicCommands"][i]["frame_number"]
             elif on_index is not None:
@@ -593,9 +596,7 @@ class BulkFast5(h5py.File):
 
 
     def _waveform_enabled(self, cmd_index):
-        """
-        private method:
-        Checks AsicCommand history to see if the waveform command was issued
+        """Checks AsicCommand history to see if the waveform command was issued.
 
         .. note::
         Here is the relevant section of the engineering documentation.
@@ -624,10 +625,14 @@ class BulkFast5(h5py.File):
                    1ms with values for bias voltage from LUT
             1-0 bits: Number of channels from ASIC: '00' - 128ch,
                       '01'-256ch, '10' - 512ch
-       """
+        """
 
-        return ord(str(self["Device"]["AsicCommands"
-                                      ][cmd_index]["command"])[5]) & 4 != 0
+        waveform_flag = self["Device"]["AsicCommands"][cmd_index]["command"].tostring()[5]
+        # if cmd is not a bytestring, convert waveform flag to an integer. Needed for python2.x compatibility
+        if not isinstance(waveform_flag, int):
+            waveform_flag = ord(waveform_flag)
+        waveform_enabled = waveform_flag & 4 != 0
+        return waveform_enabled
 
 
     def get_voltage(self, times=None, raw_indices=(None, None), use_scaling=True):
@@ -647,7 +652,7 @@ class BulkFast5(h5py.File):
             # fast5 converted from ABF files have a voltage meta section
             # containing scaling parameters
             if self.__voltage_meta__ in self:
-                voltage_meta = dict(self[self.__voltage_meta__].attrs)
+                voltage_meta = _clean_attrs(self[self.__voltage_meta__].attrs)
                 unit = voltage_meta['range'] / voltage_meta['digitisation']
                 offset = voltage_meta['offset']
             else:
@@ -759,7 +764,7 @@ class BulkFast5(h5py.File):
         The functions below are quite nasty, don't enquire too hard.
         """
         try:
-            exph_fh = StringIO(self['Meta/User']['experimental_history'][:].tostring())
+            exph_fh = StringIO(str(self['Meta/User']['experimental_history'][:].tostring().decode()))
         except Exception:
             raise RuntimeError('Cannot read experimental_history from fast5')
 
@@ -767,7 +772,7 @@ class BulkFast5(h5py.File):
         for item in self._iter_records(exph_fh):
             #item should contain 'time' and something else
             time = item['time']
-            field, value = ((k,v) for k,v in item.iteritems() if k != 'time').next()
+            field, value = next((k, v) for k, v in item.items() if k != 'time')
             data[field].append((time, value))
 
         self.parsed_exp_history = {
@@ -857,13 +862,15 @@ class BulkFast5(h5py.File):
         if location not in self:
             self.create_group(location)
         attrs = self[location].attrs
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if convert is not None:
                 attrs[k] = convert(v)
             else:
                 attrs[k] = v
 
+
     def _add_numpy_table(self, data, location):
+        data = _sanitize_data_for_writing(data)
         self.create_dataset(location, data=data, compression=True)
 
 
@@ -899,7 +906,7 @@ class BulkFast5(h5py.File):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
 
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
@@ -909,6 +916,7 @@ class BulkFast5(h5py.File):
         raw_data_path = self.__raw_data__.format(channel)
         self._add_attrs(meta, raw_folder)
         self[raw_data_path] = raw
+
 
     def set_events(self, data, meta, channel):
         """Write event data to file
@@ -968,10 +976,11 @@ class BulkFast5(h5py.File):
             data.astype(dtype), events_path
         )
 
+
     def set_voltage(self, data, meta):
         req_keys = ['description', 'digitisation', 'offset', 'range',
                     'sample_rate']
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
@@ -997,12 +1006,14 @@ class AsicBConfiguration(object):
         # ...with reverse bit order
         self.bits = np.unpackbits(self.bytes[::-1])[::-1].copy()
 
+
     @property
     def bias_voltage(self):
         val = self.int_at(129, 121)
         if val > 256:
             return 256 - val
         return val
+
 
     def active_mux(self, channel):
         """
@@ -1014,6 +1025,7 @@ class AsicBConfiguration(object):
         requested_channel_first_bit = first_bit_channel_0 + mux_state_size * channel
         return self.int_at(requested_channel_first_bit + mux_state_size - 1, requested_channel_first_bit)
 
+
     def int_at(self, start, end):
         bits = self.bits_at(start, end)
         num = 0
@@ -1022,6 +1034,7 @@ class AsicBConfiguration(object):
             if on:
                 num |= 1
         return num
+
 
     def bits_at(self, start, end):
         return self.bits[end:start+1]
@@ -1038,14 +1051,16 @@ class AsicBCommand(object):
             raise Exception("Invalid command - magic byte was '{}', expected '17'"
                             .format(self.bytes[0]))
 
-    #TODO: which of the below is correct and which should be max?
+
     @property
     def min_temperature(self):
         return self._bytes[7]
 
+
     @property
     def min_temperature(self):
         return self._bytes[8]
+
 
     @property
     def configuration(self):
