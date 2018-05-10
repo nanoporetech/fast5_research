@@ -1,5 +1,5 @@
 # fast5_research requirements. 
 # Use comment lines or inline comments to document why we are using particular versions
 h5py
-numpy<=1.13.3 # parsing of asicb commands broken with 1.14
+numpy
 progressbar2
