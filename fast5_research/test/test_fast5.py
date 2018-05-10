@@ -68,7 +68,7 @@ class Fast5API(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        print '* Fast5 API'
+        print('* Fast5 API')
 
 
     def test_000_basic_functions(self):

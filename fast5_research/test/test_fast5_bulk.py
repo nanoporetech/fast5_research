@@ -20,7 +20,7 @@ class BulkFast5Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        print '\n* Bulk Fast5'
+        print('\n* Bulk Fast5')
 
     # tests specific to this file
 
@@ -28,31 +28,31 @@ class BulkFast5Test(unittest.TestCase):
         """Test if the experiment metadata is parsed correctly."""
 
         expected = {'asic_id': '3503485095',
-                 'asic_id_17': '61607',
-                 'asic_id_eeprom': '0',
-                 'asic_temp': '34.09',
-                 'department': 'research',
-                 'device_id': 'MN15971',
-                 'exp_script_hash': 'e8b64319a2a8c0238d924a48d27b3ed433fa6e74',
-                 'exp_script_name': './python/recipes/EXPERIMENT_RESEARCH_Static_Flips_Script_CP1_increase.py',
-                 'exp_script_purpose': 'platform_qc',
-                 'exp_start_time': '1465229980',
-                 'experiment_type': 'chip_res',
-                 'filename': 'minicol095_20160606_fnfad16824_mn15971_chip_res_jun03f02_elec0',
-                 'flow_cell_id': 'FAD16824',
-                 'heatsink_temp': '37.02',
-                 'hostname': 'MINICOL095',
-                 'protocol_run_id': '7ce62553-1ed5-42eb-aaf4-984efa212945',
-                 'protocols_version_name': '0.51.1.69',
-                 'rc_wiggle_test': 'true',
-                 'read_classifier': 'platform_qc',
-                 'read_classifier_hash': '82be2305a7bc4a86ad34cd734e05350a4f347d2c',
-                 'read_classifier_is_ont_standard': '1',
-                 'read_classifier_reference_hash': '82be2305a7bc4a86ad34cd734e05350a4f347d2c',
-                 'run_id': '3aada3b43b81da733010adef6c89d18357fbd682',
-                 'user_filename_input': 'jun03f02',
-                 'version': '0.51.1.62 b201602101407',
-                 'version_name': '0.51.1.62 b201602101407'}
+                    'asic_id_17': '61607',
+                    'asic_id_eeprom': '0',
+                    'asic_temp': '34.09',
+                    'department': 'research',
+                    'device_id': 'MN15971',
+                    'exp_script_hash': 'e8b64319a2a8c0238d924a48d27b3ed433fa6e74',
+                    'exp_script_name': './python/recipes/EXPERIMENT_RESEARCH_Static_Flips_Script_CP1_increase.py',
+                    'exp_script_purpose': 'platform_qc',
+                    'exp_start_time': '1465229980',
+                    'experiment_type': 'chip_res',
+                    'filename': 'minicol095_20160606_fnfad16824_mn15971_chip_res_jun03f02_elec0',
+                    'flow_cell_id': 'FAD16824',
+                    'heatsink_temp': '37.02',
+                    'hostname': 'MINICOL095',
+                    'protocol_run_id': '7ce62553-1ed5-42eb-aaf4-984efa212945',
+                    'protocols_version_name': '0.51.1.69',
+                    'rc_wiggle_test': 'true',
+                    'read_classifier': 'platform_qc',
+                    'read_classifier_hash': '82be2305a7bc4a86ad34cd734e05350a4f347d2c',
+                    'read_classifier_is_ont_standard': '1',
+                    'read_classifier_reference_hash': '82be2305a7bc4a86ad34cd734e05350a4f347d2c',
+                    'run_id': '3aada3b43b81da733010adef6c89d18357fbd682',
+                    'user_filename_input': 'jun03f02',
+                    'version': '0.51.1.62 b201602101407',
+                    'version_name': '0.51.1.62 b201602101407'}
 
         found = self.fh.exp_metadata
         del found['script_options']
@@ -97,10 +97,10 @@ class BulkFast5Test(unittest.TestCase):
         """Test parsing of mux changes"""
         mux_changes = list(self.fh.get_mux_changes(self.fh.channels[0]))
         self.assertEqual(len(mux_changes), 6)
-        self.assertTupleEqual((3030000L, 2), tuple(mux_changes[2]))
+        self.assertTupleEqual((3030000, 2), tuple(mux_changes[2]))
         # now test another channel - this might fail if caching has gone wrong
         mux_changes = list(self.fh.get_mux_changes(self.fh.channels[1]))
-        self.assertTupleEqual((50000L, 0), tuple(mux_changes[2]))
+        self.assertTupleEqual((50000, 0), tuple(mux_changes[2]))
 
     # tests which have been designed to work for our elec3 example and converted
     # ABF file
@@ -255,20 +255,21 @@ class BulkFast5Test(unittest.TestCase):
         """Test get_states_in_window using a window specified in raw indices"""
         inds = (3045000, 3930001)
         states = self.fh.get_states_in_window(self.fh.channels[0], raw_indices=inds)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='U28')
+
         assert np.all(states == expected)
         states = self.fh.get_states_in_window(self.fh.channels[1], raw_indices=inds)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='U28')
         assert np.all(states == expected)
 
     def test_get_states_in_window_by_times(self):
         """Test get_states_in_window using a window specified in times"""
         times = (3045000.0 / self.fh.sample_rate, 3930001.0 / self.fh.sample_rate)
         states = self.fh.get_states_in_window(self.fh.channels[0], times=times)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset', 'unusable_pore'], dtype='U28')
         assert np.all(states == expected)
         states = self.fh.get_states_in_window(self.fh.channels[1], times=times)
-        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='|S28')
+        expected = np.array(['above', 'inrange', 'unclassified_following_reset'], dtype='U28')
         assert np.all(states == expected)
 
 
@@ -287,7 +288,7 @@ class BulkABFFast5Test(BulkFast5Test):
 
     @classmethod
     def setUpClass(self):
-        print '\n* Bulk ABF Fast5'
+        print('\n* Bulk ABF Fast5')
 
     # tests to skip
     @unittest.skip("Skipping test_parse_experimental_metadata")
@@ -333,19 +334,16 @@ class BulkABFFast5Test(BulkFast5Test):
 
     def test_raw_data_raises_exception_if_absent(self):
         """Test parsing raw data from a channel without raw data raises an exception."""
-
         with self.assertRaises(KeyError):
             self.fh.get_raw(2)
 
     def test_parse_raw_data(self):
         """Test parsing the whole raw dataset"""
-
         raw = self.fh.get_raw(self.fh.channels[0])
         self.assertEqual(len(raw), 10000)
 
     def test_parse_event_data_len(self):
         """Test parsing the whole event dataset"""
-
         events = self.fh.get_events(self.fh.channels[0])
         self.assertEqual(len(events), 5)
 

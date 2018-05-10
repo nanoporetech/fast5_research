@@ -18,7 +18,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Create a read fast5 from scratch with previously simulated mapping and basecall 1D data"""
-        print '* Fast5 Basecaller and Mapper'
+        print('* Fast5 Basecaller and Mapper')
 
         self.seq = 'CATTACGCATTTACCGAAACCTGGGCAAA'
         self.qstring = '!'*len(self.seq)
@@ -40,6 +40,9 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
 
         # load data to set within fast5 file
         self.model = np.genfromtxt(self.get_file_path(self.model_file), dtype=None, delimiter='\t', names=True)
+
+        self.model['kmer'] = self.model['kmer'].astype(str)
+
         self.events = np.genfromtxt(self.get_file_path(self.events_file), dtype=None, delimiter='\t', names=True)
 
         # use namedtuple to imitate a Scale object
@@ -65,25 +68,25 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
     def test_000_basic_folder_structure(self):
         """Test root folder structure creation"""
 
-        self.assertEqual(self.fh.keys(), ['Analyses', 'UniqueGlobalKey'])
-        self.assertEqual(self.fh['/Analyses'].keys(), ['Basecall_1D_000', 'Squiggle_Map_000', 'Squiggle_Map_001'])
+        self.assertEqual(list(self.fh.keys()), ['Analyses', 'UniqueGlobalKey'])
+        self.assertEqual(list(self.fh['/Analyses'].keys()), ['Basecall_1D_000', 'Squiggle_Map_000', 'Squiggle_Map_001'])
 
     def test_005_basecall_1d_folder_structure(self):
         """Test basecall 1d folder structure creation"""
 
-        self.assertEqual(self.fh['/Analyses/Basecall_1D_000'].keys(), ['BaseCalled_template', 'Summary'])
-        self.assertEqual(self.fh['/Analyses/Basecall_1D_000/BaseCalled_template'].keys(), ['Events', 'Fastq', 'Model'])
+        self.assertEqual(list(self.fh['/Analyses/Basecall_1D_000'].keys()), ['BaseCalled_template', 'Summary'])
+        self.assertEqual(list(self.fh['/Analyses/Basecall_1D_000/BaseCalled_template'].keys()), ['Events', 'Fastq', 'Model'])
 
     def test_010_mapping_folder_structure(self):
         """Test mapping structure creation"""
 
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_000'].keys(), ['SquiggleMapped_template', 'Summary'])
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_000/SquiggleMapped_template'].keys(), ['Events', 'Model'])
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_000/Summary'].keys(), ['squiggle_map_template'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_000'].keys()), ['SquiggleMapped_template', 'Summary'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_000/SquiggleMapped_template'].keys()), ['Events', 'Model'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_000/Summary'].keys()), ['squiggle_map_template'])
 
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_001'].keys(), ['SquiggleMapped_template', 'Summary'])
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_001/SquiggleMapped_template'].keys(), ['Events',  'Model'])
-        self.assertEqual(self.fh['/Analyses/Squiggle_Map_001/Summary'].keys(), ['squiggle_map_template'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_001'].keys()), ['SquiggleMapped_template', 'Summary'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_001/SquiggleMapped_template'].keys()), ['Events',  'Model'])
+        self.assertEqual(list(self.fh['/Analyses/Squiggle_Map_001/Summary'].keys()), ['squiggle_map_template'])
 
     def test_015_fastq(self):
         """ Test fastq assembly and writing """
