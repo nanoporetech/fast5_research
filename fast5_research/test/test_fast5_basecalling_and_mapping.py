@@ -7,6 +7,7 @@ import numpy as np
 import numpy.testing as nptest
 
 from fast5_research import Fast5
+from fast5_research.util import _sanitize_data_for_reading
 
 class Fast5BasecallerAndMapper(unittest.TestCase):
 
@@ -92,7 +93,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         """ Test fastq assembly and writing """
 
         fastq = '@unknown\n{}\n+\n{}\n'.format(self.seq, self.qstring)
-        self.assertEqual(self.fh['/Analyses/Basecall_1D_000/BaseCalled_template/Fastq'][()], fastq)
+        self.assertEqual(_sanitize_data_for_reading(self.fh['/Analyses/Basecall_1D_000/BaseCalled_template/Fastq'][()]), fastq)
 
     def test_020_basecall_1d_event_writing(self):
         """Test basecall event writing"""
