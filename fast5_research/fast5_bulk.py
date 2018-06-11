@@ -864,9 +864,9 @@ class BulkFast5(h5py.File):
         attrs = self[location].attrs
         for k, v in data.items():
             if convert is not None:
-                attrs[k] = convert(v)
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(convert(v))
             else:
-                attrs[k] = v
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(v)
 
 
     def _add_numpy_table(self, data, location):
@@ -884,7 +884,7 @@ class BulkFast5(h5py.File):
 
         # Start a new file, populate it with meta
         with h5py.File(fname, 'w') as h:
-            h.attrs['file_version'] = 1.0
+            h.attrs[_sanitize_data_for_writing('file_version')] = _sanitize_data_for_writing(1.0)
             for data, location in zip(
                 [tracking_id, context_tags],
                 [cls.__tracking_path__, cls.__context_path__]

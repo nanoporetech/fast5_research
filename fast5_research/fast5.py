@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import warnings
+from util import _sanitize_data_for_writing
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
@@ -23,7 +24,7 @@ from fast5_research.util import docstring_parameter
 from fast5_research.util import readtsv
 
 from fast5_research.util import validate_event_table, validate_model_table, validate_scale_object, _clean_attrs
-from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred
+from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred, _sanitize_data_for_writing
 
 warnings.simplefilter("always", DeprecationWarning)
 
@@ -121,7 +122,7 @@ class Fast5(h5py.File):
         channel_id = _type_meta(channel_id, req_fields)
         # Start a new file, populate it with meta
         with h5py.File(fname, 'w') as h:
-            h.attrs['file_version'] = 1.0
+            h.attrs[_sanitize_data_for_writing('file_version')] = _sanitize_data_for_writing(1.0)
             for data, location in zip(
                 [tracking_id, context_tags],
                 [cls.__tracking_id_path__, cls.__context_tags_path__]
@@ -154,23 +155,23 @@ class Fast5(h5py.File):
         attrs = self[location].attrs
         for k, v in data.items():
             if convert is not None:
-                attrs[k] = convert(v)
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(convert(v))
             else:
-                attrs[k] = v
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(v)
 
 
     def _add_string_dataset(self, data, location):
         assert type(data) == str, 'Need to supply a string'
-        self.create_dataset(location, data=data)
+        self.create_dataset(location, data=_sanitize_data_for_writing(data))
 
 
     def _add_numpy_table(self, data, location):
-        self.create_dataset(location, data=data, compression=True)
+        self.create_dataset(location, data=_sanitize_data_for_writing(data), compression=True)
 
 
     def _add_event_table(self, data, location):
         validate_event_table(data)
-        self._add_numpy_table(data, location)
+        self._add_numpy_table(_sanitize_data_for_writing(data), location)
 
 
     def _join_path(self, *args):
