@@ -9,7 +9,6 @@ import shutil
 import subprocess
 import sys
 import warnings
-from util import _sanitize_data_for_writing
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
