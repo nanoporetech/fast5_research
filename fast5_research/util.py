@@ -1,10 +1,13 @@
+import argparse
 from copy import deepcopy
 from itertools import tee
 from math import pow, log10
+import os
 import sys
 
 import numpy as np
 import numpy.lib.recfunctions as nprf
+
 
 def qstring_to_phred(quality):
     """Compute standard phred scores from a quality string."""

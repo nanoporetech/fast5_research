@@ -1,5 +1,6 @@
 # fast5_research requirements. 
 # Use comment lines or inline comments to document why we are using particular versions
+futures
 h5py
 numpy
 progressbar2

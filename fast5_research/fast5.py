@@ -541,7 +541,7 @@ class Fast5(h5py.File):
                     'read_id': str,
                     'median_before': np.dtype('f8'),
         }
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
+        meta = {k:v for k,v in meta.items() if k in req_keys}
         if len(meta.keys()) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys.keys())
