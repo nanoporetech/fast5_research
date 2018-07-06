@@ -22,7 +22,7 @@ def extract_single_reads():
     parser.add_argument('input', help='Bulk .fast5 file for input.')
     parser.add_argument('output', help='Output folder.')
     parser.add_argument('--prefix', default='read', help='Read file prefix.')
-    parser.add_argument('--channel_range', nargs=2, type=int, default=(1,512), help='Channel range (inclusive).')
+    parser.add_argument('--channel_range', nargs=2, type=int, default=None, help='Channel range (inclusive).')
     parser.add_argument('--workers', type=int, default=4, help='Number of worker processes.')
     args = parser.parse_args()
 
@@ -35,7 +35,13 @@ def extract_single_reads():
         extract_channel_reads,
         args.input, args.output, args.prefix
     )
-    channels = range(args.channel_range[0], args.channel_range[1] + 1)
+
+    if args.channel_range is None:
+        with BulkFast5(args.input) as src:
+            channels = src.channels
+    else:
+        channels = range(args.channel_range[0], args.channel_range[1] + 1)
+
     if args.workers > 1:
         with ProcessPoolExecutor(args.workers) as executor:
             futures = [executor.submit(worker, c) for c in channels]
