@@ -31,6 +31,11 @@ setup(
     author='mwykes',
     author_email='mwykes@nanoporetech.com',
     description='ONT Research fast5 read/write package',
+    entry_points={
+        'console_scripts': [
+            'extract_reads = {}.extract:extract_single_reads'.format(__pkg_name__)
+        ]
+    },
     license='Mozilla Public License 2.0',
     dependency_links=[],
     install_requires=install_requires,
