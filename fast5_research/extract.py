@@ -106,9 +106,10 @@ def extract_channel_reads(source, output, prefix, flat, by_id, channel):
                 if by_id:
                     filename = '{}.fast5'.format(read['read_id'])
                 else:
-                    filename = os.path.join(out_path, '{}_read_ch{}_file{}.fast5'.format(
+                    filename =  '{}_read_ch{}_file{}.fast5'.format(
                         prefix, channel, read_number
-                    ))
+                    )
+                filename = os.path.join(out_path, filename)
                 with Fast5.New(filename, 'a', tracking_id=tracking_id, context_tags=context_tags, channel_id=channel_id) as h:
                     h.set_raw(raw_slice, meta=read_id, read_number=read_number)
     return counter, channel
