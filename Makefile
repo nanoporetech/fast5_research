@@ -13,11 +13,10 @@ START_DIR=$(shell pwd)
 
 venv:
 	# if venv exists, do nothing, else create venv and install all dependencies
-	test -d ${VENV_DIR} || virtualenv -p python2 ${VENV_DIR};
+	test -d ${VENV_DIR} || virtualenv -p python3 ${VENV_DIR};
 	. ${VENV} && pip install --upgrade pip;
 	. ${VENV} && pip install -r dev_requirements.txt;
 	. ${VENV} && pip install -r requirements.txt; 
-
 
 
 install: venv clean

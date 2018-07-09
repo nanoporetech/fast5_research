@@ -74,22 +74,22 @@ class Fast5API(unittest.TestCase):
         self.assertFalse(self.h.writable, 'File is not non-writable by default.')
 
     def test_010_get_meta(self):
-        self.assertItemsEqual(
-            self.h.attributes,
-            [
+        self.assertSetEqual(
+            set(self.h.attributes.keys()),
+            {
              'scaling_used', 'median_before',
              'start_time', 'read_number',
              'abasic_found', 'duration', 'start_mux'
-            ],
+             },
             '.attributes does not contain expected fields.'
         )
 
-        self.assertItemsEqual(
-            self.h.channel_meta,
-            [
+        self.assertSetEqual(
+            set(self.h.channel_meta.keys()),
+            {
              'channel_number', 'range', 'offset',
              'digitisation', 'sampling_rate',
-            ],
+             },
             '.channel_meta does not contain expected fields.'
         )
 
@@ -109,7 +109,10 @@ class Fast5API(unittest.TestCase):
 
     def test_020_get_reads_et_al(self):
         reads = self.h.get_reads()
-        read = reads.next()
+        try:
+            read = reads.next()
+        except AttributeError:
+            read = next(reads)
         self.assertIsInstance(
             reads, types.GeneratorType,
             '.get_reads() does not give generator.'
@@ -118,12 +121,15 @@ class Fast5API(unittest.TestCase):
             read, np.ndarray,
             '.get_reads().next() does not give numpy array by default.'
         )
-        self.assertItemsEqual(
+        self.assertSequenceEqual(
             read.dtype.names, ['start', 'length', 'mean', 'stdv'],
             '.get_reads().next() does not give "event data".'
         )
-
-        read = self.h.get_reads(group=True).next()
+        reads = self.h.get_reads(group=True)
+        try:
+            read = reads.next()
+        except AttributeError:
+            read = next(reads)
         self.assertIsInstance(
             read, h5py._hl.group.Group,
             '.get_reads().next() does not give h5py group when asked.'
@@ -149,7 +155,7 @@ class Fast5API(unittest.TestCase):
             '.get_section_indices() does not give tuple'
         )
 
-        for i in xrange(2):
+        for i in range(2):
             self.assertIsInstance(
                 indices[i], tuple,
                 '.get_section_indices() does not give tuple of tuple, item {}'.format(i)

@@ -23,7 +23,7 @@ from fast5_research.util import docstring_parameter
 from fast5_research.util import readtsv
 
 from fast5_research.util import validate_event_table, validate_model_table, validate_scale_object, _clean_attrs
-from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred, _sanitize_data_for_writing
+from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred, _sanitize_data_for_writing, _sanitize_data_for_reading
 
 warnings.simplefilter("always", DeprecationWarning)
 
@@ -1222,7 +1222,7 @@ class Fast5(h5py.File):
                 self.get_analysis_latest(analysis), self.__default_basecall_fastq__.format(section)
             )
         try:
-            return self[location][()]
+            fastq = self[location][()]
         except:
             # Did we get given section != template and no analysis, that's
             #    more than likely incorrect. Try alternative analysis
@@ -1232,12 +1232,15 @@ class Fast5(h5py.File):
                     self.__default_basecall_fastq__.format(section)
                 )
                 try:
-                    return self[location][()]
+                    fastq = self[location][()]
                 except:
                     raise ValueError(err_msg.format(location))
             else:
                 raise ValueError(err_msg.format(location))
+        else:
+            fastq = _sanitize_data_for_reading(fastq)
 
+        return fastq
 
     @docstring_parameter(__base_analysis__)
     def get_sam(self, analysis=__default_alignment_analysis__, section=__default_seq_section__, custom=None):
@@ -1276,9 +1279,11 @@ class Fast5(h5py.File):
                 self.get_analysis_latest(analysis), 'Aligned_{}'.format(section), 'Fasta'
             )
         try:
-            return self[location][()]
+            sequence = _sanitize_data_for_reading(self[location][()])
         except:
             raise ValueError('Could not retrieve sequence data from {}'.format(location))
+
+        return sequence
 
 
 def recursive_glob(treeroot, pattern):
