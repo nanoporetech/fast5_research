@@ -7,23 +7,7 @@ from uuid import uuid4
 import h5py
 import numpy as np
 
-from fast5_research import Fast5, iterate_fast5
-
-
-class IterateFiles(unittest.TestCase):
-    def setUp(self):
-        self.path = (os.path.join(
-            os.path.dirname(__file__), 'data', 'recursive'
-        ))
-
-    def test_000_single_layer(self):
-        fnames = list(iterate_fast5(self.path, paths=True))
-        self.assertEqual(len(fnames), 3)
-        
-    def test_001_recursive(self):
-        fnames = list(iterate_fast5(self.path, paths=True, recursive=True))
-        self.assertEqual(len(fnames), 5)
-
+from fast5_research import Fast5
 
 class Fast5API(unittest.TestCase):
     test_file = 'example_basecall_squiggle_mapping.fast5'
@@ -45,6 +29,8 @@ class Fast5API(unittest.TestCase):
                 ('mean', 'float'), ('stdv', 'float')
             ]
         )
+        self.tmp_raw = np.ones(15, dtype=np.int16)
+
         self.tmp_channel_id = {
             'channel_number': 1,
             'range': 1.0,
@@ -59,7 +45,13 @@ class Fast5API(unittest.TestCase):
             'read_number': 1,
             'start_mux': 1,
             'read_id': str(uuid4()),
-            'scaling_used': 1
+            'scaling_used': 1,
+            'median_before': 0
+        }
+        self.tmp_tracking_id = {
+            'exp_start_time': '1970-01-01T00:00:00Z',
+            'run_id': str(uuid4()).replace('-',''),
+            'flow_cell_id': 'FAH00000',
         }
 
 
@@ -184,12 +176,25 @@ class Fast5API(unittest.TestCase):
             ValueError, self.h.get_fastq, 'Basecall_1D', '2D'
         )
 
-    def test_060_write_read_float_data(self):
+
+    def test_060_construct_new_file_checks(self):
         tmp_file = os.path.join(tempfile.gettempdir(), str(uuid4()))
 
-        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id) as h:
+        with self.assertRaises(IOError):
+            fh = Fast5.New(tmp_file, 'r')
+            fh = Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id)
+            fh = Fast5.New(tmp_file, 'a', tracking_id=self.tmp_tracking_id)
+
+        # This should be fine
+        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id, tracking_id=self.tmp_tracking_id) as h:
             h.set_read(self.tmp_events_float, self.tmp_read_id)
 
+
+    def test_061_write_read_float_data(self):
+        tmp_file = os.path.join(tempfile.gettempdir(), str(uuid4()))
+
+        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id, tracking_id=self.tmp_tracking_id) as h:
+            h.set_read(self.tmp_events_float, self.tmp_read_id)
 
         # Metadata duration and start_time should be integers, not floats
         with Fast5(tmp_file, 'r') as h:
@@ -217,7 +222,7 @@ class Fast5API(unittest.TestCase):
     def test_065_write_int_read_float_data(self):
         tmp_file = os.path.join(tempfile.gettempdir(), str(uuid4()))
 
-        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id) as h:
+        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id, tracking_id=self.tmp_tracking_id) as h:
             h.set_read(self.tmp_events_int, self.tmp_read_id)
 
         with Fast5(tmp_file) as h:
@@ -234,6 +239,15 @@ class Fast5API(unittest.TestCase):
             )
 
         os.unlink(tmp_file)
+
+    def test_067_write_raw_data(self):
+        tmp_file = os.path.join(tempfile.gettempdir(), str(uuid4()))
+        with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id, tracking_id=self.tmp_tracking_id) as h:
+            h.set_raw(self.tmp_raw, meta=self.tmp_read_id, read_number=1)
+
+        with self.assertRaises(TypeError):
+            with Fast5.New(tmp_file, 'a', channel_id = self.tmp_channel_id, tracking_id=self.tmp_tracking_id) as h:
+                h.set_raw(self.tmp_raw.astype(float), meta=self.tmp_read_id, read_number=1)
 
     def test_070_reference_fasta(self):
         for section in ('template', 'complement'):

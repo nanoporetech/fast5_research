@@ -36,8 +36,13 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         # Open new file
         header = ['channel_number', 'offset', 'range', 'digitisation', 'sampling_rate']
         channel_id = {x:0 for x in header}
+        tracking_id = tracking_id = {
+            'exp_start_time': '1970-01-00T00:00:00Z',
+            'run_id': 'a'*32,
+            'flow_cell_id': 'FAH00000',
+        }
         fakefile = tempfile.NamedTemporaryFile()
-        self.fh = Fast5.New(fakefile.name, channel_id=channel_id, read='a')
+        self.fh = Fast5.New(fakefile.name, channel_id=channel_id, tracking_id=tracking_id, read='a')
 
         # load data to set within fast5 file
         self.model = np.genfromtxt(self.get_file_path(self.model_file), dtype=None, delimiter='\t', names=True)
