@@ -23,7 +23,7 @@ from fast5_research.util import docstring_parameter
 from fast5_research.util import readtsv
 
 from fast5_research.util import validate_event_table, validate_model_table, validate_scale_object, _clean_attrs
-from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred, _sanitize_data_for_writing
+from fast5_research.util import create_basecall_1d_output, create_mapping_output, mean_qscore, qstring_to_phred, _sanitize_data_for_writing, _sanitize_data_for_reading
 
 warnings.simplefilter("always", DeprecationWarning)
 
@@ -97,16 +97,15 @@ class Fast5(h5py.File):
 
 
     @classmethod
-    def New(cls, fname, read='a', tracking_id={}, context_tags={}, channel_id={}):
+    def New(cls, fname, read='w', tracking_id={}, context_tags={}, channel_id={}):
         """Construct a fresh single-read file, with meta data written to
         standard locations.
 
         """
-        # TODO: tracking_id and channel_id checks, do we care for these? ossetra
-        #       simply copies the data "verbatim" (it doesn't copy the group
-        #       directly, but reconstructs it in a parallel layout). channel_id
-        #       is enough for most purposes I (cjw) think, if we take filenames
-        #       to be a key to filter by.
+        if read not in ('w', 'a'):
+            raise IOError("New file can only be opened with 'a' or 'w' intent.")
+
+        # channel_id: spec. requires these
         req_fields = {
                       'digitisation': np.dtype('f8'),
                       'offset': np.dtype('f8'),
@@ -119,8 +118,26 @@ class Fast5(h5py.File):
                 'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), channel_id.keys())
             )
         channel_id = _type_meta(channel_id, req_fields)
+       
+        # tracking_id: spec. says this group should be present as string, says
+        #   nothing about required keys, but certain software require the
+        #   following minimal set
+        req_fields = {
+            # guppy
+            'exp_start_time': np.dtype('S20'),  # e.g. '1970-01-01T00:00:00Z'
+            'run_id': np.dtype('S32'),          #      '118ea414303a46d892603141b9cbd7b0'  
+            'flow_cell_id': np.dtype('S8'),     #      'FAH12345'
+            # ...add others
+        }
+        if not set(req_fields).issubset(set(tracking_id.keys())):
+            raise KeyError(
+                'tracking_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), tracking_id.keys())
+            )
+        tracking_id = _type_meta(tracking_id, req_fields)
+
+
         # Start a new file, populate it with meta
-        with h5py.File(fname, 'w') as h:
+        with h5py.File(fname, read) as h:
             h.attrs[_sanitize_data_for_writing('file_version')] = _sanitize_data_for_writing(1.0)
             for data, location in zip(
                 [tracking_id, context_tags],
@@ -132,7 +149,7 @@ class Fast5(h5py.File):
             cls.__add_attrs(h, channel_id, cls.__channel_meta_path__)
 
         # return instance from new file
-        return cls(fname, read)
+        return cls(fname, 'a')
 
 
     def _add_attrs(self, data, location, convert=None):
@@ -513,26 +530,25 @@ class Fast5(h5py.File):
             attempts will be made to guess the number (assumes single read
             per file).
         """
-        # Attempt to guess read_number
+
+        # Enforce raw is 16bit int, don't try to second guess if not
+        if raw.dtype != np.int16:
+            raise TypeError('Raw data must be of type int16.')
+
+        # Attempt to guess read_number and meta from event detection group
         if read_number is None:
-            if sum(1 for _ in self.get_reads()) == 1:
-                read_number = _clean_attrs(self.get_read(group=True).attrs)['read_number']
-            else:
-                raise RuntimeError("'read_number' not given and cannot guess.")
-
-        # Attempt to guess meta
-        if meta is None:
+            exception = RuntimeError("'read_number' not given and cannot guess.")
             try:
-                meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
-            except KeyError:
-                raise RuntimeError("'meta' not given and cannot guess.")
-
-        # Clean up keys as per spec. Note: TANG-281 found that 'read_id' is not
-        #   always present on the read event data, such that if we have copied
-        #   meta from there, we won't have 'read_id'. The following:
-        #      https://wiki/display/OFAN/Single-read+fast5+file+format
-        #   notes that prior to MinKNOW version 49.2 'read_id' was not present.
-        #   Why do we have a specification?
+                n_reads = sum(1 for _ in self.get_reads())
+            except IndexError:
+                # if no events present
+                raise exception
+            else:
+                if n_reads == 1:
+                    read_number = _clean_attrs(self.get_read(group=True).attrs)['read_number']
+                    meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
+                else:
+                    raise exception
 
         req_keys = {'start_time': np.dtype('u8'),
                     'duration': np.dtype('u4'),
@@ -551,7 +567,7 @@ class Fast5(h5py.File):
         # Check meta is same as that for event data, if any
         try:
             event_meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
-        except:
+        except IndexError:
             pass
         else:
             if sum(meta[k] != event_meta[k] for k in meta.keys()) > 0:
@@ -1206,22 +1222,25 @@ class Fast5(h5py.File):
                 self.get_analysis_latest(analysis), self.__default_basecall_fastq__.format(section)
             )
         try:
-            return self[location][()]
+            fastq = self[location][()]
         except:
             # Did we get given section != template and no analysis, that's
             #    more than likely incorrect. Try alternative analysis
             if section != self.__default_seq_section__ and analysis == self.__default_basecall_1d_analysis__:
                 location = self._join_path(
-                    self.get_analysis_latest(__default_basecall_1d_analysis__),
-                    __default_basecall_fastq__.format(section)
+                    self.get_analysis_latest(self.__default_basecall_1d_analysis__),
+                    self.__default_basecall_fastq__.format(section)
                 )
                 try:
-                    return self[location][()]
+                    fastq = self[location][()]
                 except:
                     raise ValueError(err_msg.format(location))
             else:
                 raise ValueError(err_msg.format(location))
+        else:
+            fastq = _sanitize_data_for_reading(fastq)
 
+        return fastq
 
     @docstring_parameter(__base_analysis__)
     def get_sam(self, analysis=__default_alignment_analysis__, section=__default_seq_section__, custom=None):
@@ -1260,9 +1279,11 @@ class Fast5(h5py.File):
                 self.get_analysis_latest(analysis), 'Aligned_{}'.format(section), 'Fasta'
             )
         try:
-            return self[location][()]
+            sequence = _sanitize_data_for_reading(self[location][()])
         except:
             raise ValueError('Could not retrieve sequence data from {}'.format(location))
+
+        return sequence
 
 
 def recursive_glob(treeroot, pattern):
