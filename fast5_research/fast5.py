@@ -1329,7 +1329,7 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
             reads = readtsv(strand_list)
             if 'filename' in reads.dtype.names:
                 #  Strand list contains a filename column
-                files = (os.path.join(path, x) for x in reads['filename'])
+                files = (os.path.join(path, x.decode('utf-8')) for x in reads['filename'])
             else:
                 raise KeyError("Strand file does not contain required field 'filename'.\n")
 
