@@ -1176,7 +1176,7 @@ class Fast5(h5py.File):
             except:
                 raise ValueError('Could not retrieve basecall_mapping genome field from {}'.format(attr_path))
             try:
-                attrs['reference'] = (self.get_reference_fasta(section = section)).split('\n')[1]
+                attrs['reference'] = (self.get_reference_fasta(section = section)).decode('utf-8').split('\n')[1]
             except:
                 raise ValueError('Could not retrieve basecall_mapping fasta from Alignment analysis')
 
