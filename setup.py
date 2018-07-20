@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from setuptools import setup, find_packages
 
 
@@ -10,7 +11,8 @@ __description__ = 'ONT Research .fast5 read/write API.'
 # Use readme as long description and say its github-flavour markdown
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+kwargs = {'encoding':'utf-8'} if sys.version_info.major == 3 else {}
+with open(path.join(this_directory, 'README.md'), **kwargs) as f:
     __long_description__ = f.read()
 __long_description_content_type__ = 'text/markdown'
 
