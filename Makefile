@@ -1,48 +1,53 @@
-.PHONY: install test develop deb docs clean
-
-SHELL=/bin/bash
-PKG_NAME=fast5_research
-# We could create custom docker images for CI builds with the venv pre-installed
-# to /root/venv when the docker images is build so our CI builds run fast. To
-# allow us to use the same Makefile locally, assume that if /root/venv exists,
-# we are on a docker image, so don't need to create a venv, else we are local
-# and need to. 
-VENV_DIR=$(shell eval 'if [ -d /root/venv ]; then echo /root/venv; else echo `pwd`/venv/${PKG_NAME}; fi')
-VENV=${VENV_DIR}/bin/activate
-START_DIR=$(shell pwd)
-
-venv:
-	# if venv exists, do nothing, else create venv and install all dependencies
-	test -d ${VENV_DIR} || virtualenv -p python3 ${VENV_DIR};
-	. ${VENV} && pip install --upgrade pip;
-	. ${VENV} && pip install -r dev_requirements.txt;
-	. ${VENV} && pip install -r requirements.txt; 
+###
+# This Makefile is simply for testing and making docs, to install
+# the project it should be sufficient to use python setup.py <cmd>
 
 
-install: venv clean
-	. ${VENV} && python setup.py install
+.PHONY: docs clean test test_py2 test_py3
 
-test: develop
-	. ${VENV} && nosetests
 
-develop: clean
-	. ${VENV} && python setup.py develop 
+venv_py2/bin/activate:
+	test -d venv || virtualenv venv_py2 --prompt '(fast5_py2) ' --python=python2
+	. $@ && pip install pip --upgrade
+	. $@ && pip install -r dev_requirements.txt 
+	. $@ && pip install -r requirements.txt; 
 
-sdist: clean
-	. ${VENV} && python setup.py sdist
+test_py2: venv_py2/bin/activate
+	. $< && python setup.py nosetests
 
-test_sdist:
-	virtualenv test_sdist && . test_sdist/bin/activate && pip install --upgrade pip && pip install -f ./dist/ $(PKG_NAME)
 
-deb: clean
-	. ${VENV} && python setup.py --command-packages=stdeb.command sdist_dsc --debian-version 1~$(VERSION_TAG) bdist_deb
+venv_py3/bin/activate:
+	test -d venv || virtualenv venv_py3 --prompt '(fast5_py3) ' --python=python3
+	. $@ && pip install pip --upgrade
+	. $@ && pip install -r dev_requirements.txt 
+	. $@ && pip install -r requirements.txt; 
 
-docs:
-	. ${VENV} && sphinx-apidoc --no-toc -o docs/api $(PKG_NAME)
-	. ${VENV} && python setup.py build_sphinx
+test_py3: venv_py3/bin/activate
+	. $< && python setup.py nosetests
 
-clean: venv
-	. ${VENV} && python setup.py clean
-	rm -rf dist/ deb_dist/ *.egg-info/
-	find ./${PKG_NAME} -name '*.pyc' -delete
-	find ./${PKG_NAME} -name '*.so' -delete
+
+test: test_py2 test_py3
+
+clean:
+	rm -rf build dist *.egg-info venv_* 
+
+# You can set these variables from the command line.
+SPHINXOPTS    =
+SPHINXBUILD   = sphinx-build
+PAPER         =
+BUILDDIR      = _build
+
+# Internal variables.
+PAPEROPT_a4     = -D latex_paper_size=a4
+PAPEROPT_letter = -D latex_paper_size=letter
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+
+DOCSRC = docs
+
+docs: venv_py2/bin/activate
+	. $< && pip install sphinx sphinx_rtd_theme sphinx-argparse
+	. $< && cd $(DOCSRC) && $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	rm -rf docs/modules.rst docs/fast5_research.rst
+	@echo
+	@echo "Build finished. The HTML pages are in $(DOCSRC)/$(BUILDDIR)/html."
+	touch $(DOCSRC)/$(BUILDDIR)/html/.nojekyll

@@ -58,7 +58,6 @@ class Fast5(h5py.File):
 
     __default_alignment_analysis__ = 'Alignment'
 
-    __default_split_analysis__= 'Hairpin_Split'
     __default_section__ = 'template'
 
     __default_mapping_analysis__ = 'Squiggle_Map'
@@ -187,7 +186,7 @@ class Fast5(h5py.File):
 
     def _add_event_table(self, data, location):
         validate_event_table(data)
-        self._add_numpy_table(_sanitize_data_for_writing(data), location)
+        self._add_numpy_table(data, location)
 
 
     def _join_path(self, *args):
@@ -729,7 +728,8 @@ class Fast5(h5py.File):
 
     ###
     # Template/adapater splitting data
-    __split_summary_location__ = '/Summary/split_hairpin'
+    __default_split_analysis__= 'Adapter_Split'
+    __split_summary_location__ = '/Summary/split_adapter'
 
     @docstring_parameter(__base_analysis__)
     def set_split_data(self, data, analysis=__default_split_analysis__):

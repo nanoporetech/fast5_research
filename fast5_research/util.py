@@ -104,13 +104,11 @@ def build_mapping_table(events, ref_seq, post, scale, path, model):
                            with the kmer *kmer*, scaled  to the data
     *model_scaled_sd*      bare noise emission
     *seq_pos*              aligned sequence position, position on Viterbi path
-    *p_seq_pos*            posterioir probability, in slack notation
-                           P(*seq_pos*|event)
+    *p_seq_pos*            posterior probability of states on Viterbi path
     *kmer*                 kmer identity of *seq_pos*
     *mp_pos*               aligned sequence position, position with highest
                            posterioir
-    *p_mp_pos*             posterioir probability, in slack notation
-                           P(*mp_pos*|event)
+    *p_mp_pos*             posterior probability of most probable states
     *mp_kmer*              kmer identity of *mp_kmer*
     *good_emission*        whether or not the HMM has tagged event as fitting
                            the model
@@ -447,7 +445,7 @@ def readtsv(fname, fields=None, **kwargs):
 
     for k in ['names', 'delimiter', 'dtype']:
         kwargs.pop(k, None)
-    table = np.genfromtxt(fname, names=True, delimiter='\t', dtype=None, **kwargs)
+    table = np.genfromtxt(fname, names=True, delimiter='\t', dtype=None, encoding='utf8', **kwargs)
     #  Numpy tricks to force single element to be array of one row
     return table.reshape(-1)
 
@@ -466,12 +464,13 @@ def med_mad(data, factor=None, axis=None, keepdims=False):
 
     :param data: A :class:`ndarray` object
     :param factor: Factor to scale MAD by. Default (None) is to be consistent
-    with the standard deviation of a normal distribution
-    (i.e. mad( N(0,\sigma^2) ) = \sigma).
+        with the standard deviation of a normal distribution
+        (i.e. mad( N(0,\sigma^2) ) = \sigma).
     :param axis: For multidimensional arrays, which axis to calculate over
     :param keepdims: If True, axis is kept as dimension of length 1
 
     :returns: a tuple containing the median and MAD of the data
+
     """
     if factor is None:
         factor = 1.4826
@@ -493,12 +492,13 @@ def mad(data, factor=None, axis=None, keepdims=False):
 
     :param data: A :class:`ndarray` object
     :param factor: Factor to scale MAD by. Default (None) is to be consistent
-    with the standard deviation of a normal distribution
-    (i.e. mad( N(0,\sigma^2) ) = \sigma).
+        with the standard deviation of a normal distribution
+        (i.e. mad( N(0,\sigma^2) ) = \sigma).
     :param axis: For multidimensional arrays, which axis to calculate the median over.
     :param keepdims: If True, axis is kept as dimension of length 1
 
     :returns: the (scaled) MAD
+
     """
     _ , dmad = med_mad(data, factor=factor, axis=axis, keepdims=keepdims)
     return dmad
@@ -579,29 +579,26 @@ def _clean_attrs(attrs):
 
 
 def _sanitize_data_for_writing(data):
-    # We only really need to do interesting conversions for python3
-    if sys.version_info.major == 3:
-        if isinstance(data, str):
-            return data.encode()
-        elif isinstance(data, np.ndarray) and data.dtype.kind == np.dtype(np.unicode):
-            return data.astype('S')
-        elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
-            dtypes = data.dtype.descr
-            for index, entry in enumerate(dtypes):
-                if entry[1].startswith('<U'):
-                    # numpy.astype can't handle empty string datafields for some
-                    # reason, so we'll explicitly state that.
-                    if len(entry[1]) <= 2 or (len(entry[1]) == 3 and
-                                              entry[1][2] == '0'):
-                        raise TypeError('Empty datafield {} cannot be converted'
-                                        ' by np.astype.'.format(entry[0]))
-                    dtypes[index] = (entry[0], '|S{}'.format(entry[1][2:]))
-            return data.astype(dtypes)
+    if isinstance(data, str):
+        return data.encode()
+    elif isinstance(data, np.ndarray) and data.dtype.kind == np.dtype(np.unicode):
+        return data.astype('S')
+    elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
+        dtypes = data.dtype.descr
+        for index, entry in enumerate(dtypes):
+            if entry[1].startswith('<U'):
+                # numpy.astype can't handle empty string datafields for some
+                # reason, so we'll explicitly state that.
+                if len(entry[1]) <= 2 or (len(entry[1]) == 3 and
+                                          entry[1][2] == '0'):
+                    raise TypeError('Empty datafield {} cannot be converted'
+                                    ' by np.astype.'.format(entry[0]))
+                dtypes[index] = (entry[0], '|S{}'.format(entry[1][2:]))
+        return data.astype(dtypes)
     return data
 
 
 def _sanitize_data_for_reading(data):
-    # This is all python 3 conversions, where we need to check for byte strings
     if sys.version_info.major == 3:
         if isinstance(data, bytes):
             return data.decode()

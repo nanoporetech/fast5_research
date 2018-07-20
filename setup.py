@@ -44,7 +44,6 @@ setup(
     packages=find_packages(exclude=['*.test', '*.test.*', 'test.*', 'test']),
     package_data={},
     zip_safe=True,
-    test_suite='discover_tests',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',

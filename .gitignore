@@ -4,6 +4,8 @@
 *.swo
 *.so
 *.egg-info
+.eggs
 build
 dist
-venv
+docs/_build/
+venv*

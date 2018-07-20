@@ -45,7 +45,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         self.fh = Fast5.New(fakefile.name, channel_id=channel_id, tracking_id=tracking_id, read='a')
 
         # load data to set within fast5 file
-        self.model = np.genfromtxt(self.get_file_path(self.model_file), dtype=None, delimiter='\t', names=True)
+        self.model = np.genfromtxt(self.get_file_path(self.model_file), dtype=None, delimiter='\t', names=True, encoding='utf8')
 
         self.model['kmer'] = self.model['kmer'].astype(str)
 
