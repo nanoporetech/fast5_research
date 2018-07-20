@@ -727,8 +727,8 @@ class Fast5(h5py.File):
 
 
     ###
-    # Template/adapater splitting data
-    __default_split_analysis__= 'Adapter_Split'
+    # Template/adapter splitting data
+    __default_split_analysis__= 'Segment_Linear'
     __split_summary_location__ = '/Summary/split_adapter'
 
     @docstring_parameter(__base_analysis__)
@@ -755,15 +755,29 @@ class Fast5(h5py.File):
         :param analysis: Base analysis name (under {})
         """
 
-        location = self._join_path(
-            self.get_analysis_latest(analysis), self.__split_summary_location__
-        )
-        try:
-            return _clean_attrs(self[location].attrs)
-        except:
-            raise ValueError(
-                'Could not retrieve signal split point data from attributes of {}'.format(location)
+        def _inner(path=analysis):
+            location = self._join_path(
+                self.get_analysis_latest(path), 'Summary'
             )
+            try:
+                # there should be a single group under the above
+                grps = list(self[location].keys())
+                if len(grps) != 1:
+                    raise
+            except:
+                raise IndexError('Cannot find location containing split point data.')
+            location = self._join_path(location, grps[0])
+            try:
+                return _clean_attrs(self[location].attrs)
+            except:
+                raise ValueError(
+                    'Could not retrieve signal split point data from attributes of {}'.format(location)
+                )
+        try:
+            return _inner(analysis)
+        except:
+            # try a fallback location
+            return _inner('Adapter_Split')
 
 
     @docstring_parameter(__base_analysis__)
