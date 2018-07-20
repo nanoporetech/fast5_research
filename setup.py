@@ -4,6 +4,16 @@ from setuptools import setup, find_packages
 
 
 __pkg_name__ = 'fast5_research'
+__author__ = 'cwright'
+__description__ = 'ONT Research .fast5 read/write API.'
+
+# Use readme as long description and say its github-flavour markdown
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    __long_description__ = f.read()
+__long_description_content_type__ = 'text/markdown'
+
 
 # Get the version number from __init__.py
 verstrline = open(os.path.join(__pkg_name__, '__init__.py'), 'r').read()
@@ -28,9 +38,11 @@ setup(
     name=__pkg_name__,
     version=__version__,
     url='https://github.com/nanoporetech/{}'.format(__pkg_name__),
-    author='mwykes',
-    author_email='mwykes@nanoporetech.com',
-    description='ONT Research fast5 read/write package',
+    author=__author__,
+    author_email='{}@nanoporetech.com'.format(__author__),
+    description=__description__,
+    long_description=__long_description__,
+    long_description_content_type=__long_description_content_type__,
     entry_points={
         'console_scripts': [
             'extract_reads = {}.extract:extract_single_reads'.format(__pkg_name__)
