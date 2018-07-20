@@ -1176,7 +1176,7 @@ class Fast5(h5py.File):
             except:
                 raise ValueError('Could not retrieve basecall_mapping genome field from {}'.format(attr_path))
             try:
-                attrs['reference'] = (self.get_reference_fasta(section = section)).split('\n')[1]
+                attrs['reference'] = (self.get_reference_fasta(section = section)).decode('utf-8').split('\n')[1]
             except:
                 raise ValueError('Could not retrieve basecall_mapping fasta from Alignment analysis')
 
@@ -1329,7 +1329,7 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
             reads = readtsv(strand_list)
             if 'filename' in reads.dtype.names:
                 #  Strand list contains a filename column
-                files = (os.path.join(path, x) for x in reads['filename'])
+                files = (os.path.join(path, x.decode('utf-8')) for x in reads['filename'])
             else:
                 raise KeyError("Strand file does not contain required field 'filename'.\n")
 
