@@ -2,5 +2,5 @@
 # Use comment lines or inline comments to document why we are using particular versions
 futures
 h5py
-numpy
+numpy>=1.14.0
 progressbar2
