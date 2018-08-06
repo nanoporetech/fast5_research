@@ -1,4 +1,3 @@
-import argparse
 from copy import deepcopy
 from itertools import tee
 from math import pow, log10
@@ -584,7 +583,7 @@ def _sanitize_data_for_writing(data):
     elif isinstance(data, np.ndarray) and data.dtype.kind == np.dtype(np.unicode):
         return data.astype('S')
     elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
-        dtypes = data.dtype.descr
+        dtypes = dtype_descr(data)
         for index, entry in enumerate(dtypes):
             if entry[1].startswith('<U'):
                 # numpy.astype can't handle empty string datafields for some
@@ -605,7 +604,7 @@ def _sanitize_data_for_reading(data):
         elif isinstance(data, np.ndarray) and data.dtype.kind == 'S':
             return np.char.decode(data)
         elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
-            dtypes = data.dtype.descr
+            dtypes = dtype_descr(data)
             for index, entry in enumerate(dtypes):
                 if entry[1].startswith('|S'):
                     # numpy.astype can't handle empty datafields for some
@@ -618,3 +617,13 @@ def _sanitize_data_for_reading(data):
             return data.astype(dtypes)
     return data
 
+
+def dtype_descr(arr):
+    """Get arr.dtype.descr
+    Views of structured arrays in which columns have been re-ordered nolonger support arr.dtype.descr
+    see https://github.com/numpy/numpy/commit/dd8a2a8e29b0dc85dca4d2964c92df3604acc212
+    """
+    try:
+        return arr.dtype.descr
+    except ValueError:
+        return tuple([(n, arr.dtype[n].descr[0][1]) for n in arr.dtype.names])
