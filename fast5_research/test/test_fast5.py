@@ -11,10 +11,16 @@ from fast5_research import Fast5
 
 class Fast5API(unittest.TestCase):
     test_file = 'example_basecall_squiggle_mapping.fast5'
+    additional_file = 'additional_test_file.fast5'
 
     def setUp(self):
         self.h = Fast5(os.path.join(
             os.path.dirname(__file__), 'data', self.test_file
+        ))
+
+
+        self.additional_h = Fast5(os.path.join(
+            os.path.dirname(__file__), 'data', self.additional_file
         ))
 
         # Use to create new temp files
@@ -57,6 +63,7 @@ class Fast5API(unittest.TestCase):
 
     def tearDown(self):
         self.h.close()
+        self.additional_h.close()
 
     @classmethod
     def setUpClass(self):
@@ -148,8 +155,21 @@ class Fast5API(unittest.TestCase):
             '.get_analysis_new() does not return correct.'
         )
 
-    def test_040_split_data(self):
+    def test_040_split_data_legacy(self):
         indices = self.h.get_section_indices()
+        self.assertIsInstance(
+            indices, tuple,
+            '.get_section_indices() does not give tuple'
+        )
+
+        for i in range(2):
+            self.assertIsInstance(
+                indices[i], tuple,
+                '.get_section_indices() does not give tuple of tuple, item {}'.format(i)
+            )
+
+    def test_042_split_data_linear(self):
+        indices = self.additional_h.get_section_indices()
         self.assertIsInstance(
             indices, tuple,
             '.get_section_indices() does not give tuple'
