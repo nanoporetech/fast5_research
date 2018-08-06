@@ -18,6 +18,7 @@ import numpy as np
 import numpy.lib.recfunctions as nprf
 import progressbar
 
+from fast5_research.util import dtype_descr
 from fast5_research.util import mad
 from fast5_research.util import docstring_parameter
 from fast5_research.util import readtsv
@@ -117,14 +118,14 @@ class Fast5(h5py.File):
                 'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), channel_id.keys())
             )
         channel_id = _type_meta(channel_id, req_fields)
-       
+
         # tracking_id: spec. says this group should be present as string, says
         #   nothing about required keys, but certain software require the
         #   following minimal set
         req_fields = {
             # guppy
             'exp_start_time': np.dtype('S20'),  # e.g. '1970-01-01T00:00:00Z'
-            'run_id': np.dtype('S32'),          #      '118ea414303a46d892603141b9cbd7b0'  
+            'run_id': np.dtype('S32'),          #      '118ea414303a46d892603141b9cbd7b0'
             'flow_cell_id': np.dtype('S8'),     #      'FAH12345'
             # ...add others
         }
@@ -357,7 +358,7 @@ class Fast5(h5py.File):
 
         dtype = np.dtype([(
             d[0], 'float') if d[0] in float_fields else d
-            for d in events.dtype.descr
+            for d in dtype_descr(events)
         ])
         data = None
         with events.astype(dtype):
@@ -453,7 +454,7 @@ class Fast5(h5py.File):
         uint_fields = ('start', 'length')
         dtype = np.dtype([(
             d[0], 'uint32') if d[0] in uint_fields else d
-            for d in data.dtype.descr
+            for d in dtype_descr(data)
         ])
 
         # (see _get_read_data()). If the data is not an int or uint

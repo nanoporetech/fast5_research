@@ -1,5 +1,6 @@
 import ast
 from collections import defaultdict
+from fast5_research.util import dtype_descr
 import itertools
 import re
 from sys import version_info
@@ -496,7 +497,7 @@ class BulkFast5(h5py.File):
             create a view with the appropriate data type
         """
         d = []
-        for col, str_type in data.dtype.descr:
+        for col, str_type in dtype_descr(data):
             if not isinstance(str_type, str) and isinstance(str_type[1], dict) and 'enum' in str_type[1]:
                 str_type = str_type[0]
             d.append((col, str_type))
@@ -962,7 +963,7 @@ class BulkFast5(h5py.File):
         uint_fields = ('start', 'length')
         dtype = np.dtype([(
             d[0], 'uint32') if d[0] in uint_fields else d
-            for d in data.dtype.descr
+            for d in dtype_descr(data)
         ])
 
         # If the data is not an int or uint we assume it is in seconds and scale
