@@ -33,8 +33,16 @@ with open(os.path.join(dir_path, 'requirements.txt')) as fh:
         for r in fh.read().splitlines() if not r.strip().startswith('#')
     ]
 
-extra_requires = {
-}
+extra_requires={}
+
+py2only_requirements = ['futures']
+if len(py2only_requirements) > 0:
+    extra_requires[':python_version == "2.7"'] = []
+
+for requirement in py2only_requirements:
+    install_requires.remove(requirement)
+    extra_requires[':python_version == "2.7"'].append(requirement)
+
 
 setup(
     name=__pkg_name__,
