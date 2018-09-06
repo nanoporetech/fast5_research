@@ -19,7 +19,7 @@ knowledge of the file structure. To read a file and obtain a useful summary:
     with Fast5(filename) as fh:
         raw = fh.get_read(raw=True)
         summary = fh.summary()
-    print('Raw is {} samples long.'.format(len(raw))
+    print('Raw is {} samples long.'.format(len(raw)))
     print('Summary {}.'.format(summary))
 
 Note that in this example the raw data will be provided in pA s.
