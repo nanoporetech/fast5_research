@@ -1,5 +1,6 @@
 from collections import namedtuple
 import os
+import sys
 import tempfile
 import unittest
 
@@ -32,6 +33,9 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         self.map_path_file = 'example_template.map_path'
         self.map_post_file = 'example_template.map_post'
         self.ref_name = 'test_seq'
+        self.npstr_dtype = 'U'
+        if sys.version_info[0] < 3:
+            self.npstr_dtype = 'S'
 
         # Open new file
         header = ['channel_number', 'offset', 'range', 'digitisation', 'sampling_rate']
@@ -130,7 +134,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         input_means = self.events['mean']
         events = self.fh.get_mapping_data()
         nptest.assert_array_equal(input_means, events['mean'])
-        self.assertEqual(events['kmer'].dtype, np.dtype('|U5'))
+        self.assertEqual(events['kmer'].dtype, np.dtype('|{}5'.format(self.npstr_dtype)))
 
     def test_036_mapping_event_reading_any(self):
         """Test mapping event reading with the I don't care function"""
@@ -138,7 +142,7 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
         input_means = self.events['mean']
         events = self.fh.get_mapping_data()
         nptest.assert_array_equal(input_means, events['mean'])
-        self.assertEqual(events['kmer'].dtype, np.dtype('|U5'))
+        self.assertEqual(events['kmer'].dtype, np.dtype('|{}5'.format(self.npstr_dtype)))
 
 
 if __name__ == '__main__':
