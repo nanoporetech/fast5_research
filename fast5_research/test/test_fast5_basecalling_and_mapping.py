@@ -127,16 +127,18 @@ class Fast5BasecallerAndMapper(unittest.TestCase):
     def test_035_mapping_event_reading(self):
         """Test mapping event reading with the getter function"""
 
-        input_events = self.events['mean']
-        output_events = self.fh.get_mapping_data()['mean']
-        nptest.assert_array_equal(input_events, output_events)
+        input_means = self.events['mean']
+        events = self.fh.get_mapping_data()
+        nptest.assert_array_equal(input_means, events['mean'])
+        self.assertEqual(events['kmer'].dtype, np.dtype('|U5'))
 
     def test_036_mapping_event_reading_any(self):
         """Test mapping event reading with the I don't care function"""
 
-        input_events = self.events['mean']
-        output_events, attrs = self.fh.get_any_mapping_data()
-        nptest.assert_array_equal(input_events, output_events['mean'])
+        input_means = self.events['mean']
+        events = self.fh.get_mapping_data()
+        nptest.assert_array_equal(input_means, events['mean'])
+        self.assertEqual(events['kmer'].dtype, np.dtype('|U5'))
 
 
 if __name__ == '__main__':

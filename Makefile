@@ -7,7 +7,7 @@
 
 
 venv_py2/bin/activate:
-	test -d venv || virtualenv venv_py2 --prompt '(fast5_py2) ' --python=python2
+	test -d venv_py2 || virtualenv venv_py2 --prompt '(fast5_py2) ' --python=python2
 	. $@ && pip install pip --upgrade
 	. $@ && pip install -r dev_requirements.txt 
 	. $@ && pip install -r requirements.txt; 
@@ -17,7 +17,7 @@ test_py2: venv_py2/bin/activate
 
 
 venv_py3/bin/activate:
-	test -d venv || virtualenv venv_py3 --prompt '(fast5_py3) ' --python=python3
+	test -d venv_py3 || virtualenv venv_py3 --prompt '(fast5_py3) ' --python=python3
 	. $@ && pip install pip --upgrade
 	. $@ && pip install -r dev_requirements.txt 
 	. $@ && pip install -r requirements.txt; 
