@@ -378,7 +378,7 @@ class Fast5(h5py.File):
         if needs_scaling:
             data['start'] /= self.sample_rate
             data['length'] /= self.sample_rate
-        return data
+        return _sanitize_data_for_reading(data)
 
 
     def _get_read_data_raw(self, read, indices=None, scale=True):
