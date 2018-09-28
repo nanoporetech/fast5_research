@@ -117,6 +117,7 @@ def build_mapping_table(events, ref_seq, post, scale, path, model):
     kmer_len = len(model['kmer'][0])
 
     kmer_index = seq_to_kmers(ref_seq, kmer_len)
+    label_index = dict((j,i) for i,j in enumerate(model['kmer']))
     kmer_dtype = '|S{}'.format(kmer_len)
 
     column_names = ['mean', 'scaled_mean', 'stdv', 'scaled_stdv', 'start', 'length',
@@ -131,7 +132,8 @@ def build_mapping_table(events, ref_seq, post, scale, path, model):
     # Sequence position
     seq_pos = np.where(path >= 0, path, np.abs(path) - 1)
     seq_kmer = [kmer_index[x] for x in seq_pos]
-    seq_kmer_i = [np.where(model['kmer'].astype(str) == kmer)[0][0] for kmer in seq_kmer]
+    seq_kmer_i = [label_index[i] for i in seq_kmer]
+
     table['seq_pos'] = seq_pos
     table['kmer'] = seq_kmer
     table['p_seq_pos'] = post[range(post.shape[0]), seq_pos]
