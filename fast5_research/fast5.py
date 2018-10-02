@@ -220,6 +220,12 @@ class Fast5(h5py.File):
 
 
     @property
+    def context_tags(self):
+        """Context tags meta information as python dict"""
+        return _clean_attrs(self[self.__context_tags_path__].attrs)
+
+
+    @property
     def attributes(self):
         """Attributes for a read, assumes one read in file"""
         try:
@@ -974,6 +980,33 @@ class Fast5(h5py.File):
         validate_scale_object(scale)
         assert isinstance(seq, str), 'seq needs to be a str'
 
+        # Create annotated events and results
+        n_states = None
+        if post is None:
+            n_states = len(seq) - len(model['kmer'][0]) + 1
+        annot_events, results = create_mapping_output(
+            events, scale, path, model, seq, post=post, is_reverse=is_reverse, n_states=n_states
+        )
+        results['ref_name'] = ref_name
+        if score is not None:
+            results['strand_score'] = score
+
+        # Create scale meta to be written with model
+        scale_meta = {
+            'shift': scale.shift,
+            'scale': scale.scale,
+            'drift': scale.drift,
+            'var': scale.var,
+            'scale_sd': scale.scale_sd,
+            'var_sd': scale.var_sd
+        }
+
+        self._write_mapping_data(annot_events, results, model, scale_meta, section, analysis=analysis)
+
+
+    def _write_mapping_data(self, annot_events, results, model, scale_meta, section,
+                            analysis=__default_mapping_analysis__):
+
         # Prepare paths
         paths_dict = {
             'Squiggle_Map': (self.__default_mapping_analysis__, self.__default_mapping_events__,
@@ -988,17 +1021,6 @@ class Fast5(h5py.File):
         model_path = self._join_path(base, model_path.format(section))
         summary_path = self._join_path(base, summary_path.format(section))
 
-        # Create annotated events and results
-        n_states = None
-        if post is None:
-            n_states = len(seq) - len(model['kmer'][0]) + 1
-        annot_events, results = create_mapping_output(
-            events, scale, path, model, seq, post=post, is_reverse=is_reverse, n_states=n_states
-        )
-        results['ref_name'] = ref_name
-        if score is not None:
-            results['strand_score'] = score
-
         # Write annotated events
         read_meta = {
             'start_time': annot_events[0]['start'],
@@ -1008,14 +1030,6 @@ class Fast5(h5py.File):
         self._add_attrs(read_meta, event_path)
 
         # Write model
-        scale_meta = {
-            'shift': scale.shift,
-            'scale': scale.scale,
-            'drift': scale.drift,
-            'var': scale.var,
-            'scale_sd': scale.scale_sd,
-            'var_sd': scale.var_sd
-        }
         self._add_numpy_table(model,  model_path)
         self._add_attrs(scale_meta, model_path)
 
