@@ -124,9 +124,9 @@ class Fast5(h5py.File):
         #   following minimal set
         req_fields = {
             # guppy
-            'exp_start_time': np.dtype('S20'),  # e.g. '1970-01-01T00:00:00Z'
-            'run_id': np.dtype('S32'),          #      '118ea414303a46d892603141b9cbd7b0'
-            'flow_cell_id': np.dtype('S8'),     #      'FAH12345'
+            'exp_start_time': np.dtype('U20'),  # e.g. '1970-01-01T00:00:00Z'
+            'run_id': np.dtype('U32'),          #      '118ea414303a46d892603141b9cbd7b0'
+            'flow_cell_id': np.dtype('U8'),     #      'FAH12345'
             # ...add others
         }
         if not set(req_fields).issubset(set(tracking_id.keys())):
