@@ -681,15 +681,38 @@ class BulkFast5(h5py.File):
         if hasattr(self, '_cached_voltage_changes'):
             return self._cached_voltage_changes
 
+        # First try the asic command, fallback to the experimental history,
+        # and finally the voltage trace.
         try:
             self._cached_voltage_changes = self._bias_from_asic_commands()
         except:
             try:
                 self._cached_voltage_changes = self._bias_from_exp_hist()
             except:
-                raise RuntimeError('Cannot parse voltage changes.')
+                try:
+                    self._cached_voltage_changes = self._bias_from_voltages()
+                except:
+                    raise RuntimeError('Cannot parse voltage changes.')
 
         return self._cached_voltage_changes
+
+
+    def _bias_from_voltages(self):
+        """Extract voltage changes from the voltage trace data."""
+
+        voltages = self.get_voltage()
+        changes = np.where(voltages[:-1] != voltages[1:])[0]
+
+        voltage_changes = np.empty(
+            len(changes) + 1,
+            dtype=[('time', float), ('set_bias_voltage', int)]
+        )
+        voltage_changes['time'][0] = voltages[0]
+        voltage_changes['time'][1:] = changes
+        voltage_changes['time'] /= self.sample_rate
+        voltage_changes['set_bias_voltage'] = voltages[0]
+        voltage_changes['set_bias_voltage'][1:] = voltages[changes]
+        return voltage_changes
 
 
     def _bias_from_asic_commands(self):
