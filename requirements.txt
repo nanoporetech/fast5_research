@@ -1,6 +1,6 @@
 # fast5_research requirements. 
 # Use comment lines or inline comments to document why we are using particular versions
 futures
-h5py
-numpy>=1.14.0
+h5py<2.9.0     # causes some tests to fail
+numpy>=1.14.0  # 1.14 made some relatively big changes
 progressbar2
