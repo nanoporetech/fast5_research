@@ -55,7 +55,7 @@ setup(
     long_description_content_type=__long_description_content_type__,
     entry_points={
         'console_scripts': [
-            'extract_reads = {}.extract:extract_single_reads'.format(__pkg_name__)
+            'extract_reads = {}.extract:extract_reads'.format(__pkg_name__)
         ]
     },
     license='Mozilla Public License 2.0',
