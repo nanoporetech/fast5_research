@@ -105,6 +105,52 @@ class Fast5(h5py.File):
         if read not in ('w', 'a'):
             raise IOError("New file can only be opened with 'a' or 'w' intent.")
 
+        channel_id = cls.convert_channel_id(channel_id)
+        tracking_id = cls.convert_tracking_id(tracking_id)
+
+
+        # Start a new file, populate it with meta
+        with h5py.File(fname, read) as h:
+            h.attrs[_sanitize_data_for_writing('file_version')] = _sanitize_data_for_writing(1.0)
+            for data, location in zip(
+                [tracking_id, context_tags],
+                [cls.__tracking_id_path__, cls.__context_tags_path__]
+            ):
+                # cjw: no idea why these must be str, just following ossetra
+                cls._add_attrs_to_fh(h, data, location, convert=str)
+            # These aren't forced to be str
+            cls._add_attrs_to_fh(h, channel_id, cls.__channel_meta_path__)
+
+        # return instance from new file
+        return cls(fname, 'a')
+
+
+    def _add_attrs(self, data, location, convert=None):
+        """Convenience method for adding attrs to a possibly new group.
+        :param data: dict of attrs to add
+        :param location: hdf path
+        :param convert: function to apply to all dictionary values
+        """
+        self._add_attrs_to_fh(self, data, location, convert=None)
+
+
+    @staticmethod
+    def _add_attrs_to_fh(fh, data, location, convert=None):
+        """Implementation of _add_attrs as staticmethod. This allows
+        functionality to be used in .New() constructor but is otherwise nasty!
+        """
+        if location not in fh:
+            fh.create_group(location)
+        attrs = fh[location].attrs
+        for k, v in data.items():
+            if convert is not None:
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(convert(v))
+            else:
+                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(v)
+
+
+    @staticmethod
+    def convert_channel_id(channel_id):
         # channel_id: spec. requires these
         req_fields = {
                       'digitisation': np.dtype('f8'),
@@ -118,7 +164,11 @@ class Fast5(h5py.File):
                 'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), channel_id.keys())
             )
         channel_id = _type_meta(channel_id, req_fields)
+        return channel_id
 
+
+    @staticmethod
+    def convert_tracking_id(tracking_id):
         # tracking_id: spec. says this group should be present as string, says
         #   nothing about required keys, but certain software require the
         #   following minimal set
@@ -134,47 +184,26 @@ class Fast5(h5py.File):
                 'tracking_id does not contain required fields: {},\ngot {}.'.format(req_fields.keys(), tracking_id.keys())
             )
         tracking_id = _type_meta(tracking_id, req_fields)
-
-
-        # Start a new file, populate it with meta
-        with h5py.File(fname, read) as h:
-            h.attrs[_sanitize_data_for_writing('file_version')] = _sanitize_data_for_writing(1.0)
-            for data, location in zip(
-                [tracking_id, context_tags],
-                [cls.__tracking_id_path__, cls.__context_tags_path__]
-            ):
-                # cjw: no idea why these must be str, just following ossetra
-                cls.__add_attrs(h, data, location, convert=str)
-            # These aren't forced to be str
-            cls.__add_attrs(h, channel_id, cls.__channel_meta_path__)
-
-        # return instance from new file
-        return cls(fname, 'a')
-
-
-    def _add_attrs(self, data, location, convert=None):
-        """Convenience method for adding attrs to a possibly new group.
-        :param data: dict of attrs to add
-        :param location: hdf path
-        :param convert: function to apply to all dictionary values
-        """
-        self.__add_attrs(self, data, location, convert=None)
+        return tracking_id
 
 
     @staticmethod
-    def __add_attrs(self, data, location, convert=None):
-        """Implementation of _add_attrs as staticmethod. This allows
-        functionality to be used in .New() constructor but is otherwise nasty!
-        """
-        if location not in self:
-            self.create_group(location)
-        attrs = self[location].attrs
-        for k, v in data.items():
-            if convert is not None:
-                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(convert(v))
-            else:
-                attrs[_sanitize_data_for_writing(k)] = _sanitize_data_for_writing(v)
-
+    def convert_raw_meta(meta):
+        req_keys = {'start_time': np.dtype('u8'),
+                    'duration': np.dtype('u4'),
+                    'read_number': np.dtype('i4'),
+                    'start_mux': np.dtype('u1'),
+                    'read_id': str,
+                    'median_before': np.dtype('f8'),
+        }
+        meta = {k:v for k,v in meta.items() if k in req_keys}
+        if len(meta.keys()) != len(req_keys):
+            raise KeyError(
+                'Raw meta data must contain keys: {}.'.format(req_keys.keys())
+            )
+        meta = _type_meta(meta, req_keys)
+        return meta
+    
 
     def _add_string_dataset(self, data, location):
         assert type(data) == str, 'Need to supply a string'
@@ -412,11 +441,13 @@ class Fast5(h5py.File):
         return data
 
 
-    def _convert_meta_times(self, meta):
+    @staticmethod
+    def _convert_meta_times(meta, sample_rate):
         # Metadata should be written in samples (int), not seconds (float)
         if isinstance(meta['start_time'], float):
-            meta['start_time'] = int(round(meta['start_time'] * self.sample_rate))
-            meta['duration'] = int(round(meta['duration'] * self.sample_rate))
+            meta['start_time'] = int(round(meta['start_time'] * sample_rate))
+            meta['duration'] = int(round(meta['duration'] * sample_rate))
+        return meta
 
 
     def set_read(self, data, meta):
@@ -453,7 +484,7 @@ class Fast5(h5py.File):
         )
 
         # Metadata should be written in samples (int), not seconds (float)
-        self._convert_meta_times(meta)
+        meta = self._convert_meta_times(meta, self.sample_rate)
         self._add_attrs(meta, path)
 
 
@@ -556,20 +587,11 @@ class Fast5(h5py.File):
                 else:
                     raise exception
 
-        req_keys = {'start_time': np.dtype('u8'),
-                    'duration': np.dtype('u4'),
-                    'read_number': np.dtype('i4'),
-                    'start_mux': np.dtype('u1'),
-                    'read_id': str,
-                    'median_before': np.dtype('f8'),
-        }
-        meta = {k:v for k,v in meta.items() if k in req_keys}
-        if len(meta.keys()) != len(req_keys):
-            raise KeyError(
-                'Raw meta data must contain keys: {}.'.format(req_keys.keys())
-            )
         # Metadata should be written in samples (int), not seconds (float)
-        self._convert_meta_times(meta)
+        meta = self._convert_meta_times(meta, self.sample_rate)
+        # Ensure meta values are in correct type
+        meta = self.convert_raw_meta(meta)
+
         # Check meta is same as that for event data, if any
         try:
             event_meta = _clean_attrs(self.get_read(group=True, read_number=read_number).attrs)
@@ -581,8 +603,6 @@ class Fast5(h5py.File):
                     "Attempted to set raw meta data as {} "
                     "but event meta is {}".format(meta, event_meta)
                 )
-        # Ensure meta values are in correct type
-        meta = _type_meta(meta, req_keys)
         # Good to go!
         read_path = self._join_path(self.__raw_path__, 'Read_{}'.format(read_number))
         data_path = self._join_path(read_path, 'Signal')
