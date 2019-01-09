@@ -587,7 +587,11 @@ def _sanitize_data_for_writing(data):
     elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
         dtypes = dtype_descr(data)
         for index, entry in enumerate(dtypes):
-            if entry[1].startswith('<U'):
+            type_check = entry[1]
+            if isinstance(type_check, tuple):
+                # an enum?
+                return data
+            if type_check.startswith('<U'):
                 # numpy.astype can't handle empty string datafields for some
                 # reason, so we'll explicitly state that.
                 if len(entry[1]) <= 2 or (len(entry[1]) == 3 and
@@ -608,6 +612,10 @@ def _sanitize_data_for_reading(data):
         elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
             dtypes = dtype_descr(data)
             for index, entry in enumerate(dtypes):
+                type_check = entry[1]
+                if isinstance(type_check, tuple):
+                    # an enum?
+                    return data
                 if entry[1].startswith('|S'):
                     # numpy.astype can't handle empty datafields for some
                     # reason, so we'll explicitly state that.
