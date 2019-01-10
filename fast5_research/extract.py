@@ -179,8 +179,8 @@ class SingleWriter(ReadWriter):
 MULTI_READ_FILE_VERSION = "2.0"
 
 class MultiWriter(ReadWriter):
-    def __init__(self, *args, reads_per_file=4000, **kwargs):
-        super(MultiWriter, self).__init__(*args, **kwargs)
+    def __init__(self, out_path, by_id, prefix="", reads_per_file=4000):
+        super(MultiWriter, self).__init__(out_path, by_id, prefix=prefix)
         self.reads_per_file = reads_per_file
         self.current_reads = 0 # reads in open file, used to signal new file condition
         self.file_counter = 0
