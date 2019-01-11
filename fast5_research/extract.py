@@ -7,9 +7,9 @@ import os
 import h5py
 import numpy as np
 
-from fast5_research.fast5 import Fast5
+from fast5_research.fast5 import Fast5, iterate_fast5
 from fast5_research.fast5_bulk import BulkFast5
-from fast5_research.util import _sanitize_data_for_writing
+from fast5_research.util import _sanitize_data_for_writing, readtsv
 
 
 def extract_reads():
@@ -18,7 +18,7 @@ def extract_reads():
         datefmt='%H:%M:%S', level=logging.INFO
     )
     logger = logging.getLogger('Extract Reads')
-    parser = argparse.ArgumentParser(description='Bulk .fast5 to single read .fast5 conversion.')
+    parser = argparse.ArgumentParser(description='Bulk .fast5 to read .fast5 conversion.')
     parser.add_argument('input', help='Bulk .fast5 file for input.')
     parser.add_argument('output', help='Output folder.')
     out_format = parser.add_mutually_exclusive_group()
@@ -130,6 +130,96 @@ def extract_channel_reads(source, output, prefix, flat, by_id, max_files, multi,
     return counter, channel
 
 
+def filter_multi_reads():
+    logging.basicConfig(
+        format='[%(asctime)s - %(name)s] %(message)s',
+        datefmt='%H:%M:%S', level=logging.INFO
+    )
+    logger = logging.getLogger('Filter')
+    parser = argparse.ArgumentParser(description='Extract reads from multi-read .fast5 files.')
+    parser.add_argument('input', help='Path to input multi-read .fast5 files.')
+    parser.add_argument('output', help='Output folder.')
+    parser.add_argument('filter', help='A .tsv file with column `read_id` defining required reads.')
+    parser.add_argument('--tsv_field', default='read_id', help='Field name from `filter` file to obtain read IDs.')
+    out_format = parser.add_mutually_exclusive_group()
+    out_format.add_argument('--multi', action='store_true', default=True, help='Output multi-read files.')
+    out_format.add_argument('--single', action='store_false', dest='multi', help='Output single-read files.')
+    parser.add_argument('--prefix', default="", help='Read file prefix.')
+    parser.add_argument('--recursive', action='store_true', help='Search recursively under `input` for source files.')
+    parser.add_argument('--workers', type=int, default=4, help='Number of worker processes.')
+    #parser.add_argument('--limit', type=int, default=None, help='Limit reads per channel.')
+    args = parser.parse_args()
+
+    if not args.multi:
+        raise NotImplementedError('Extraction of reads to single read files is on the TODO list.')
+
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+    else:
+        raise IOError('The output directory must not exist.')
+
+    #TODO: could attempt to discover filenames from args.
+    logger.info("Reading filter file.")
+    read_table = readtsv(args.filter, fields=[args.tsv_field])
+    required_reads = set(read_table[args.tsv_field])
+    logger.info("Found {} reads in filter.".format(len(required_reads)))
+
+    # grab list of source files
+    logger.info("Searching for input files.")
+    src_files = list(iterate_fast5(args.input, paths=True, recursive=args.recursive))
+    n_files = len(src_files)
+
+    logger.info("Finding reads within {} source files.".format(n_files))
+    index_worker = functools.partial(reads_in_multi, filt=required_reads)
+    read_index = dict()
+    n_reads = 0
+    with ProcessPoolExecutor(args.workers) as executor:
+        i = 0
+        for src_file, read_ids in zip(src_files, executor.map(index_worker, src_files, chunksize=10)):
+            i += 1
+            n_reads += len(read_ids)
+            read_index[src_file] = read_ids
+            if i % 10 == 0:
+                logger.info("Indexed {}/{} files. {}/{} reads".format(i, n_files, n_reads, len(required_reads)))
+
+        read_index = dict(zip(src_files, executor.map(index_worker, src_files, chunksize=10)))
+
+    # We don't go via creating Read objects, copying the data verbatim
+    # likely quicker and nothing should need the verification that the APIs
+    # provide (garbage in, garbage out).
+    logger.info("Extracting {} reads.".format(n_reads))
+    if args.prefix != '':
+        args.prefix = '{}_'.format(args.prefix)
+    with MultiWriter(args.output, None, prefix=args.prefix) as writer:
+        for src_file, read_ids in read_index.items():
+            logger.info("Copying {} reads from {}.".format(
+                len(read_ids), os.path.basename(src_file)
+            ))
+            with h5py.File(src_file, 'r') as src_fh:
+                for read_id in read_ids:
+                    writer.write_read(src_fh["read_{}".format(read_id)])
+    logger.info("Done.")
+
+
+def reads_in_multi(src, filt=None):
+    """Get list of read IDs contained within a multi-read file.
+    
+    :param src: source file.
+    :param filt: perform filtering by given set.
+    :returns: set of read UUIDs (as string and recorded in hdf group name).
+    """
+    logger = logging.getLogger(os.path.splitext(os.path.basename(src))[0])
+    logger.debug("Finding reads.")
+    prefix = 'read_'
+    with h5py.File(src, 'r') as fh:
+        read_ids = set(grp[len(prefix):] for grp in fh if grp.startswith(prefix))
+    logger.debug("Found {} reads.".format(len(read_ids)))
+    if filt is not None:
+        read_ids = read_ids.intersection(filt)
+    logger.debug("Filtered to {} reads.".format(len(read_ids)))
+    return read_ids
+
+
 class Read(object):
     # Just a sketch to help interchange of format
     def __init__(self, read_id, read_number, tracking_id, channel_id, context_tags, raw):
@@ -198,6 +288,11 @@ class MultiWriter(ReadWriter):
 
 
     def write_read(self, read):
+        """Write a read.
+
+        :param read: either a `Read` object or an hdf group handle from a
+            source multi-read file.
+        """
         if self.closed:
             raise RuntimeError('Cannot write after closed.')
 
@@ -213,7 +308,12 @@ class MultiWriter(ReadWriter):
             self.file_counter += 1
 
         # write data
-        self._write_read(read)
+        if isinstance(read, Read):
+            self._write_read(read)
+        elif isinstance(read, h5py.Group):
+            self._copy_read_group(read)
+        else:
+            raise TypeError("Cannot write type {} to output file.")
         self.current_reads += 1
 
         # update 
@@ -245,3 +345,5 @@ class MultiWriter(ReadWriter):
             signal_path, data=read.raw, compression='gzip', shuffle=True, dtype='i2')
 
 
+    def _copy_read_group(self, read):
+        self.current_file.copy(read, read.name)
