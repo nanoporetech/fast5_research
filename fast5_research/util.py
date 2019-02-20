@@ -565,7 +565,7 @@ def _clean(value):
         else:
             return value.tolist()
     elif type(value).__module__ == np.__name__:
-        conversion = np.asscalar(value)
+        conversion = value.item()
         if sys.version_info.major == 3 and isinstance(conversion, bytes):
             conversion = conversion.decode()
         return conversion
