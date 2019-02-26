@@ -182,8 +182,6 @@ def filter_multi_reads():
             if i % 10 == 0:
                 logger.info("Indexed {}/{} files. {}/{} reads".format(i, n_files, n_reads, len(required_reads)))
 
-        read_index = dict(zip(src_files, executor.map(index_worker, src_files, chunksize=10)))
-
     # We don't go via creating Read objects, copying the data verbatim
     # likely quicker and nothing should need the verification that the APIs
     # provide (garbage in, garbage out).
