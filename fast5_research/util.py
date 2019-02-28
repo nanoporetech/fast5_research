@@ -637,3 +637,22 @@ def dtype_descr(arr):
         return arr.dtype.descr
     except ValueError:
         return tuple([(n, arr.dtype[n].descr[0][1]) for n in arr.dtype.names])
+
+
+def group_vector(arr):
+    """Group a vector by unique values.
+
+    :param arr: input vector to be grouped.
+
+    :returns: a dictionary mapping unique values to arrays of indices of the
+        input vector.
+
+    """
+    groups, keys_as_int = np.unique(arr, return_inverse = True)
+    n_keys = max(keys_as_int)
+    indices = [[] for i in range(n_keys + 1)]
+    for i, k in enumerate(keys_as_int):
+        indices[k].append(i)
+    indices = [np.array(elt) for elt in indices]
+    return dict(zip(groups, indices))
+
