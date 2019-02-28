@@ -6,10 +6,9 @@ v1.2.12
 -------
 * Clear up a deprecation warning: https://github.com/nanoporetech/fast5_research/issues/30
 
-
 v1.2.11
+-------
 * Add `filter_reads` program to extract a subset of reads from multi-reads.
-
 
 v1.2.10
 -------
