@@ -1,3 +1,7 @@
+v1.2.14
+-------
+* Fix issue affecting conversion of |u1 dtypes
+
 v1.2.13
 -------
 * Use filename if possible when extracting reads
