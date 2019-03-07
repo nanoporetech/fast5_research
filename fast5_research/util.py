@@ -610,7 +610,7 @@ def _sanitize_data_for_reading(data):
         elif isinstance(data, np.ndarray) and data.dtype.kind == 'S':
             return np.char.decode(data)
         elif isinstance(data, np.ndarray) and len(data.dtype) > 1:
-            dtypes = dtype_descr(data)
+            dtypes = list(dtype_descr(data))
             for index, entry in enumerate(dtypes):
                 type_check = entry[1]
                 if isinstance(type_check, tuple):
@@ -624,6 +624,11 @@ def _sanitize_data_for_reading(data):
                         raise TypeError('Empty datafield {} cannot be converted'
                                         ' by np.astype.'.format(entry[0]))
                     dtypes[index] = (entry[0], '<U{}'.format(entry[1][2:]))
+
+                if entry[1].startswith('|u'):
+                    # there seems to be a bug in astype
+                    dtypes[index] = (entry[0], entry[1].replace('|u', 'u'))
+
             return data.astype(dtypes)
     return data
 
