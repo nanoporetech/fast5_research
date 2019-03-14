@@ -341,10 +341,12 @@ class MockZeroArray(np.ndarray):
         to chimaera build_mapping_table
 
         :param shape: tuple, shape of array
+      
         """
         self.shape = shape
 
     def argmax(self, axis=0):
+        """Fake argmax values of an array."""
         return np.zeros(self.shape[1-axis], dtype=int)
 
 

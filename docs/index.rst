@@ -39,6 +39,7 @@ Contents
    :maxdepth: 2
 
    examples
+   cmdline
 
 Full API reference
 ------------------

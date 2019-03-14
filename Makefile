@@ -44,7 +44,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 DOCSRC = docs
 
-docs: venv_py2/bin/activate
+docs: venv_py3/bin/activate
 	. $< && pip install sphinx sphinx_rtd_theme sphinx-argparse
 	. $< && cd $(DOCSRC) && $(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	rm -rf docs/modules.rst docs/fast5_research.rst
