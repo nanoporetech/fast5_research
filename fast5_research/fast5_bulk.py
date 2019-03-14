@@ -289,17 +289,18 @@ class BulkFast5(h5py.File):
 
         read_data = self._get_reads_data(channel)
 
-        return_keys = [
+        return_keys = {
             'read_start', 'read_length',
             'event_index_start', 'event_index_end', 'classification', 'read_id',
             'median', 'median_sd', 'median_dwell', 'range', 'drift'
-        ]
-        additional_keys = ['flags']
-        required_keys = return_keys + additional_keys
-
+        }
+        additional_keys = {'flags'}
+        computed_keys = {'drift'}
+        required_keys = return_keys.union(additional_keys).difference(computed_keys)
         for key in required_keys:
             if key not in read_data.dtype.names:
-                raise KeyError('The read data did not contain the required key {}'.format(key))
+
+                raise KeyError('The read data did not contain the required key {}.'.format(key))
 
         # classification is enumerated
         enum_map = h5py.check_dtype(enum=read_data.dtype['classification'])
@@ -310,27 +311,32 @@ class BulkFast5(h5py.File):
         # we need to combine 'event_index_start', 'read_start' from first row in
         # the read with sum 'read_length' over all rows and all other cols from
         # final row. If penultimate_class is True, use classification from penultimate row.
+        # We also need to calculate drift, which is the absolute difference
+        # between the local_median field of the first and last rows of a read.
         accum_stats = None
         accum_names = ('event_index_start', 'read_start', 'read_length', 'classification')
         for n, row in enumerate(read_data):
             if accum_stats is None:
                 accum_stats = {k:row[k] for k in accum_names}
+                accum_stats['drift'] = 0
+                first_local_median = row['local_median']
             else:
                 accum_stats['read_length'] += row['read_length']
                 if penultimate_class:  # use classification from previous row
                     accum_stats['classification'] = read_data[n - 1]['classification']
                 else:  # use classification from current row
                     accum_stats['classification'] = row['classification']
+                accum_stats['drift'] = abs(row['local_median'] - first_local_median)
 
             # pick out only the columns we want
-            row_details = {k:row[k] for k in return_keys}
+            row_details = {k:row[k] for k in return_keys - computed_keys}
 
             if row['flags'] & 0x1 == 0:
                 # read has ended
                 if classes[row['classification']] == 'transition' and not transitions:
                     accum_stats = None  # prepare for next read
                 else:
-                    for k in accum_stats:  # replace
+                    for k in accum_stats:  # replace / add computed keys
                         row_details[k] = accum_stats[k]
                     row_details['classification'] = classes[row_details['classification']]
                     yield _clean_attrs(row_details)
