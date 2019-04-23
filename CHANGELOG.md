@@ -1,3 +1,11 @@
+v1.2.16
+-------
+* Fix bug in `filter_reads` resulting in the last worker's reads not being written. 
+
+v1.2.15
+-------
+* Calculate drift from read table as it will no longer be present in the read table.
+
 v1.2.14
 -------
 * Fix issue affecting conversion of |u1 dtypes
