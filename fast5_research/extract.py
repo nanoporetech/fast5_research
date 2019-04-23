@@ -222,6 +222,11 @@ def filter_multi_reads():
                 job += 1
                 proc_n_reads = 0
                 proc_reads = dict()
+        if proc_n_reads > 0:  # processing remaining reads
+            proc_prefix = "{}{}_".format(args.prefix, job)
+            futures.append(executor.submit(_subset_reads_to_file, proc_reads, args.output, proc_prefix, worker_id=job))
+
+
         for fut in as_completed(futures):
             try:
                 reads_written, prefix = fut.result()
@@ -257,7 +262,7 @@ def _subset_reads_to_file(read_index, output, prefix, worker_id=0):
 
 def reads_in_multi(src, filt=None):
     """Get list of read IDs contained within a multi-read file.
-    
+
     :param src: source file.
     :param filt: perform filtering by given set.
     :returns: set of read UUIDs (as string and recorded in hdf group name).
@@ -370,7 +375,7 @@ class MultiWriter(ReadWriter):
             raise TypeError("Cannot write type {} to output file.")
         self.current_reads += 1
 
-        # update 
+        # update
         if self.current_reads == self.reads_per_file:
             self.current_reads = 0
 
