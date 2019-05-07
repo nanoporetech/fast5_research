@@ -1,3 +1,7 @@
+v1.2.17
+-------
+* Allow `filter_reads` to be given full filename/read_id information
+
 v1.2.16
 -------
 * Fix bug in `filter_reads` resulting in the last worker's reads not being written. 
