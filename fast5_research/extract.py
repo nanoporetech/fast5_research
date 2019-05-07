@@ -137,17 +137,31 @@ def filter_multi_reads():
         datefmt='%H:%M:%S', level=logging.INFO
     )
     logger = logging.getLogger('Filter')
-    parser = argparse.ArgumentParser(description='Extract reads from multi-read .fast5 files.')
-    parser.add_argument('input', help='Path to input multi-read .fast5 files.')
-    parser.add_argument('output', help='Output folder.')
-    parser.add_argument('filter', help='A .tsv file with column `read_id` defining required reads.')
-    parser.add_argument('--tsv_field', default='read_id', help='Field name from `filter` file to obtain read IDs.')
+    parser = argparse.ArgumentParser(
+        description='Extract reads from multi-read .fast5 files.')
+    parser.add_argument('input',
+        help='Path to input multi-read .fast5 files (or list of files).')
+    parser.add_argument('output',
+        help='Output folder.')
+    parser.add_argument('filter',
+        help='A .tsv file with column `read_id` defining required reads. '
+             'If a `filename` column is present, this will be used as the '
+             'location of the read.')
+    parser.add_argument('--tsv_field', default='read_id',
+        help='Field name from `filter` file to obtain read IDs.')
+    parser.add_argument('--prefix', default="",
+        help='Read file prefix.')
+    parser.add_argument('--recursive', action='store_true',
+        help='Search recursively under `input` for source files.')
+    parser.add_argument('--workers', type=int, default=4,
+        help='Number of worker processes.')
+
     out_format = parser.add_mutually_exclusive_group()
-    out_format.add_argument('--multi', action='store_true', default=True, help='Output multi-read files.')
-    out_format.add_argument('--single', action='store_false', dest='multi', help='Output single-read files.')
-    parser.add_argument('--prefix', default="", help='Read file prefix.')
-    parser.add_argument('--recursive', action='store_true', help='Search recursively under `input` for source files.')
-    parser.add_argument('--workers', type=int, default=4, help='Number of worker processes.')
+    out_format.add_argument('--multi', action='store_true', default=True,
+        help='Output multi-read files.')
+    out_format.add_argument('--single', action='store_false', dest='multi',
+        help='Output single-read files.')
+
     #parser.add_argument('--limit', type=int, default=None, help='Limit reads per channel.')
     args = parser.parse_args()
 
@@ -161,14 +175,20 @@ def filter_multi_reads():
 
     # grab list of source files
     logger.info("Searching for input files.")
-    src_files = list(iterate_fast5(args.input, paths=True, recursive=args.recursive))
+    try:
+        src_files = list(set(readtsv(args.input)['filename']))
+    except Exception as e:
+        logger.info('Failed to read `input` as filelist, assuming path to search. {}'.format(e))
+        src_files = list(iterate_fast5(args.input, paths=True, recursive=args.recursive))
     n_files = len(src_files)
+    logger.info("Found {} source files.".format(n_files))
 
     logger.info("Reading filter file.")
     read_table = readtsv(args.filter, fields=[args.tsv_field])
     logger.info("Found {} reads in filter.".format(len(read_table)))
+
     try:
-        # try to build index from a file with 'filename' column
+        # try to build index from the filter file with 'filename' column
         if 'filename' not in read_table.dtype.names:
             raise ValueError("'filename' column not present in filter.")
         logger.info("Attempting to build read index from input filter.")
@@ -179,7 +199,7 @@ def filter_multi_reads():
             raise ValueError('Found non-uniquely named source files')
         read_index = dict()
         for fname, indices in group_vector(read_table['filename']).items():
-            fpath = src_path_files[fname]
+            fpath = src_path_files[os.path.basename(fname)]
             read_index[fpath] = read_table[args.tsv_field][indices]
         logger.info("Successfully build read index from input filter.")
     except Exception as e:
