@@ -1,9 +1,11 @@
 import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import collections
 import functools
 import logging
-from timeit import default_timer as now
 import os
+from timeit import default_timer as now
+from uuid import uuid4
 
 import h5py
 import numpy as np
@@ -31,6 +33,7 @@ def extract_reads():
                         help='Name single-read .fast5 files by read_id.')
     parser.add_argument('--prefix', default="", help='Read file prefix.')
     parser.add_argument('--channel_range', nargs=2, type=int, default=None, help='Channel range (inclusive).')
+    parser.add_argument('--summary', help='Strand summary file containing at least columns channel, start_time and duration).')
     parser.add_argument('--workers', type=int, default=4, help='Number of worker processes.')
     parser.add_argument('--limit', type=int, default=None, help='Limit reads per channel.')
     args = parser.parse_args()
@@ -39,6 +42,13 @@ def extract_reads():
         os.makedirs(args.output)
     else:
         raise IOError('The output directory must not exist.')
+
+    if args.summary is not None:
+        if not os.path.isfile(args.summary):
+            raise IOError('The summary file does not exist.')
+        else:
+            # load summary
+            args.summary = np.genfromtxt(args.summary, delimiter='\t', encoding=None, dtype=None, names=True)
 
     worker = functools.partial(
         extract_channel_reads,
@@ -52,9 +62,17 @@ def extract_reads():
     else:
         channels = range(args.channel_range[0], args.channel_range[1] + 1)
 
+    if args.summary is not None:
+        # only process channels in the summary
+        summ_channels = set(args.summary['channel'])
+        channels = [ch for ch in channels if ch in summ_channels]
+        summary_by_ch = {ch: args.summary[np.where(args.summary['channel'] == ch)] for ch in channels}
+    else:
+        summary_by_ch = collections.defaultdict(lambda: None)
+
     if args.workers > 1:
         with ProcessPoolExecutor(args.workers) as executor:
-            futures = [executor.submit(worker, c) for c in channels]
+            futures = [executor.submit(worker, c, summary=summary_by_ch[c]) for c in channels]
             for future in as_completed(futures):
                 try:
                     n_reads, channel = future.result()
@@ -65,11 +83,21 @@ def extract_reads():
                     logger.info("Extracted {} reads from channel {}.".format(n_reads, channel))
     else:
         for channel in channels:
-            worker(channel)
+            worker(channel, summary=summary_by_ch[channel])
     logger.info("Finished.")
 
 
-def extract_channel_reads(source, output, prefix, flat, by_id, max_files, multi, channel):
+def time_cast(time, sample_rate):
+    """
+    Convert a float time to sample index, or return time unmodified
+    """
+    if isinstance(time, float):
+        return int(time * sample_rate)
+    else:
+        return time
+
+
+def extract_channel_reads(source, output, prefix, flat, by_id, max_files, multi, channel, summary=None):
     if flat:
         out_path = output
         # give multi files a channel prefix else they will
@@ -103,22 +131,45 @@ def extract_channel_reads(source, output, prefix, flat, by_id, max_files, multi,
             median_before = None
             counter = 1
             raw_data = src.get_raw(channel, use_scaling=False)
-            for read_number, read in enumerate(src.get_reads(channel)):
-                if median_before is None:
+
+            if summary is not None:
+                # convert array into stream of dicts
+                reads = ({k: row[k] for k in row.dtype.names} for row in summary)
+                class_field = 'class'
+                start_field = 'start_time'
+                duration_field = 'duration'
+                # if start_time is a float (seconds) we need to convert to
+                # samples
+                time_cols = ['start_time', 'duration']
+            else:
+                reads = src.get_reads(channel)
+                class_field = 'classification'
+                start_field = 'read_start'
+                duration_field = 'read_length'
+
+            for read_number, read in enumerate(reads):
+
+                if summary is not None:
+                    if 'median_current_before' in read:
+                        median_before = read['median_current_before']
+                    else:
+                        median_before = 0.0
+                elif median_before is None:
                     median_before = read['median']
                     continue
 
-                if read['classification'] != 'strand':
+                if summary is None and read[class_field] != 'strand':
                     median_before = read['median']
                 else:
                     counter += 1
-                    start, length = read['read_start'], read['read_length']
+                    start = time_cast(read[start_field], meta['sample_rate'])
+                    length = time_cast(read[duration_field], meta['sample_rate'])
                     read_id = {
-                        'start_time': read['read_start'],
-                        'duration': read['read_length'],
+                        'start_time': start,
+                        'duration': length,
                         'read_number': read_number,
                         'start_mux': src.get_mux(channel, raw_index=start, wells_only=True),
-                        'read_id': read['read_id'],
+                        'read_id': str(read['read_id']) if 'read_id' in read else str(uuid4()),
                         'scaling_used': 1,
                         'median_before': median_before
                     }
