@@ -1,3 +1,7 @@
+v1.2.18
+-------
+* Allow `extract_reads` to extract only reads present in a given read_summary.txt
+
 v1.2.17
 -------
 * Allow `filter_reads` to be given full filename/read_id information
