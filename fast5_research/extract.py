@@ -2,6 +2,7 @@ import argparse
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import collections
 import functools
+from itertools import tee
 import logging
 import os
 from timeit import default_timer as now
@@ -13,6 +14,54 @@ import numpy as np
 from fast5_research.fast5 import Fast5, iterate_fast5
 from fast5_research.fast5_bulk import BulkFast5
 from fast5_research.util import _sanitize_data_for_writing, readtsv, group_vector
+
+def triplewise(iterable):
+    a, b, c = tee(iterable, 3)
+    next(b)
+    next(c)
+    next(c)
+    yield from zip(a, b, c)
+
+
+def extract_read_summary():
+    logging.basicConfig(
+        format='[%(asctime)s - %(name)s] %(message)s',
+        datefmt='%H:%M:%S', level=logging.INFO
+    )
+    logger = logging.getLogger('Extract Reads')
+    parser = argparse.ArgumentParser(description='Bulk .fast5 to read .fast5 conversion.')
+    parser.add_argument('input', help='Bulk .fast5 file for input.')
+    parser.add_argument('output', help='Output text file.')
+    parser.add_argument('--channel_range', nargs=2, type=int, default=None, help='Channel range (inclusive).')
+    args = parser.parse_args()
+
+    if args.channel_range is None:
+        with BulkFast5(args.input) as src:
+            channels = src.channels
+    else:
+        channels = range(args.channel_range[0], args.channel_range[1] + 1)
+
+    fields = None
+    with BulkFast5(args.input) as src, open(args.output, 'w') as out_fh:
+        for chan in channels:
+            logger.info("Processing channel {}".format(chan))
+            count = 0
+            reads = src.get_reads(chan)
+            # this drops the first and last read
+            for before, data, after in triplewise(reads):
+                data['channel'] = chan
+                data['mux'] = src.get_mux(chan, raw_index=data['read_start'] + data['read_length'] // 2)
+                data['median_before'] = before['median']
+                data['median_after'] = after['median']
+                if fields is None:
+                    fields = list(data.keys())
+                    out_fh.write('\t'.join(fields))
+                    out_fh.write('\n')
+                out_fh.write('\t'.join(str(data[f]) for f in fields))
+                out_fh.write('\n')
+                count += 1
+            logger.info("{} reads in channel {}".format(count, chan))
+
 
 
 def extract_reads():
