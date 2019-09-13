@@ -79,8 +79,6 @@ def extract_read_summary():
                 if data['classification'] == 'strand':
                     last_strand = data['start_time'] + data['duration']
                 count += 1
-                if count > 10:
-                    break
             logger.info("{} reads in channel {}".format(count, chan))
 
 
