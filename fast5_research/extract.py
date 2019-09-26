@@ -22,7 +22,6 @@ def triplewise(iterable):
     next(c)
     yield from zip(a, b, c)
 
-
 def extract_read_summary():
     logging.basicConfig(
         format='[%(asctime)s - %(name)s] %(message)s',
@@ -41,6 +40,11 @@ def extract_read_summary():
     else:
         channels = range(args.channel_range[0], args.channel_range[1] + 1)
 
+    with BulkFast5(args.input) as src, open(args.output, 'w') as out_fh:
+        extract_read_summary_internal(src, channels, out_fh, logger)
+
+
+def extract_read_summary_internal(src, channels, out_fh, logger):
     fields = [
         'run', 'channel', 'mux', 'read_id', 'classification',
         'start_time', 'duration', 'time_since_strand',
@@ -48,38 +52,37 @@ def extract_read_summary():
         'median_current', 'median_current_before', 'median_current_after',
         'drift', 'median_sd', 'range_current', 'median_dwell'
     ]
-    with BulkFast5(args.input) as src, open(args.output, 'w') as out_fh:
-        out_fh.write('\t'.join(fields))
-        out_fh.write('\n')
-        sample_rate = src.sample_rate
-        run_id = src.get_tracking_meta()['run_id']
-        for chan in channels:
-            logger.info("Processing channel {}".format(chan))
-            count = 0
-            reads = src.get_reads(chan)
-            last_strand = 0
-            # this drops the first and last read
-            for before, data, after in triplewise(reads):
-                data['run'] = run_id
-                data['channel'] = chan
-                data['mux'] = src.get_mux(chan, raw_index=data['read_start'] + data['read_length'] // 2)
-                data['median_current'] = data['median']
-                data['median_current_before'] = before['median']
-                data['median_current_after'] = after['median']
-                data['num_events'] = data['event_index_end'] - data['event_index_start']
-                data['start_time'] = float(data['read_start']) / sample_rate
-                data['duration'] = float(data['read_length']) / sample_rate
-                data['start_event'] = data['event_index_start']
-                data['end_event'] = data['event_index_end']
-                data['range_current'] = data['range']
-                data['median_dwell'] /= sample_rate
-                data['time_since_strand'] = data['start_time'] - last_strand
-                out_fh.write('\t'.join(str(data[f]) for f in fields))
-                out_fh.write('\n')
-                if data['classification'] == 'strand':
-                    last_strand = data['start_time'] + data['duration']
-                count += 1
-            logger.info("{} reads in channel {}".format(count, chan))
+    out_fh.write('\t'.join(fields))
+    out_fh.write('\n')
+    sample_rate = src.sample_rate
+    run_id = src.get_tracking_meta()['run_id']
+    for chan in channels:
+        logger.info("Processing channel {}".format(chan))
+        count = 0
+        reads = src.get_reads(chan)
+        last_strand = 0
+        # this drops the first and last read
+        for before, data, after in triplewise(reads):
+            data['run'] = run_id
+            data['channel'] = chan
+            data['mux'] = src.get_mux(chan, raw_index=data['read_start'] + data['read_length'] // 2)
+            data['median_current'] = data['median']
+            data['median_current_before'] = before['median']
+            data['median_current_after'] = after['median']
+            data['num_events'] = data['event_index_end'] - data['event_index_start']
+            data['start_time'] = float(data['read_start']) / sample_rate
+            data['duration'] = float(data['read_length']) / sample_rate
+            data['start_event'] = data['event_index_start']
+            data['end_event'] = data['event_index_end']
+            data['range_current'] = data['range']
+            data['median_dwell'] /= sample_rate
+            data['time_since_strand'] = data['start_time'] - last_strand
+            out_fh.write('\t'.join(str(data[f]) for f in fields))
+            out_fh.write('\n')
+            if data['classification'] == 'strand':
+                last_strand = data['start_time'] + data['duration']
+            count += 1
+        logger.info("{} reads in channel {}".format(count, chan))
 
 
 
