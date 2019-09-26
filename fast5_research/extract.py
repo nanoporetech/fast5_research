@@ -27,8 +27,8 @@ def extract_read_summary():
         format='[%(asctime)s - %(name)s] %(message)s',
         datefmt='%H:%M:%S', level=logging.INFO
     )
-    logger = logging.getLogger('Extract Reads')
-    parser = argparse.ArgumentParser(description='Bulk .fast5 to read .fast5 conversion.')
+    logger = logging.getLogger('Summarize Reads')
+    parser = argparse.ArgumentParser(description='Summarize reads stored in a Bulk .fast5')
     parser.add_argument('input', help='Bulk .fast5 file for input.')
     parser.add_argument('output', help='Output text file.')
     parser.add_argument('--channel_range', nargs=2, type=int, default=None, help='Channel range (inclusive).')
