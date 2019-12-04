@@ -55,6 +55,7 @@ setup(
     long_description_content_type=__long_description_content_type__,
     entry_points={
         'console_scripts': [
+            'index_reads = {}.extract:build_read_index'.format(__pkg_name__),
             'extract_reads = {}.extract:extract_reads'.format(__pkg_name__),
             'read_summary = {}.extract:extract_read_summary'.format(__pkg_name__),
             'filter_reads = {}.extract:filter_multi_reads'.format(__pkg_name__),

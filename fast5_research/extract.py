@@ -253,6 +253,35 @@ def extract_channel_reads(source, output, prefix, flat, by_id, max_files, multi,
     return counter, channel
 
 
+def build_read_index():
+    logging.basicConfig(
+        format='[%(asctime)s - %(name)s] %(message)s',
+        datefmt='%H:%M:%S', level=logging.INFO
+    )
+    logger = logging.getLogger('Index Reads')
+
+    parser = argparse.ArgumentParser(description='Build index of reads within .fast5s. Output to stdout.')
+    parser.add_argument('input', help='.fast5 directory')
+    parser.add_argument('--recursive', action='store_true',
+        help='Search recursively under `input` for source files.')
+    parser.add_argument('--workers', type=int, default=8,
+        help='Number of worker processes.')
+    args = parser.parse_args()
+
+    src_files = list(iterate_fast5(args.input, paths=True, recursive=args.recursive))
+    logger.info("Found {} files.".format(len(src_files)))
+
+    with ProcessPoolExecutor(args.workers) as executor:
+         n_reads = 0
+         for i, (src, read_ids) in enumerate(
+                 zip(src_files, executor.map(reads_in_multi, src_files, chunksize=10))):
+             n_reads += len(read_ids)
+             for read in read_ids:
+                 print('\t'.join((read, os.path.abspath(src))))
+             if i % 10 == 0:
+                 logger.info("Indexed {}/{} files. {} reads".format(i, len(src_files), n_reads))
+
+
 def filter_multi_reads():
     logging.basicConfig(
         format='[%(asctime)s - %(name)s] %(message)s',
@@ -401,6 +430,7 @@ def _subset_reads_to_file(read_index, output, prefix, worker_id=0):
                     else:
                         writer.write_read(read_grp)
     return reads_written, prefix
+
 
 def reads_in_multi(src, filt=None):
     """Get list of read IDs contained within a multi-read file.

@@ -1,3 +1,11 @@
+v1.2.20
+-------
+* Add `index_reads` program to build read_id->file index tsv file.
+
+v1.2.19
+-------
+* Add program to produce read summary text file from Bulk .fast5.
+
 v1.2.18
 -------
 * Allow `extract_reads` to extract only reads present in a given read_summary.txt
