@@ -59,6 +59,7 @@ setup(
             'extract_reads = {}.extract:extract_reads'.format(__pkg_name__),
             'read_summary = {}.extract:extract_read_summary'.format(__pkg_name__),
             'filter_reads = {}.extract:filter_multi_reads'.format(__pkg_name__),
+            'filter_from_bam = {}.extract:filter_file_from_bam'.format(__pkg_name__),
         ]
     },
     license='Mozilla Public License 2.0',

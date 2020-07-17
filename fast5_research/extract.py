@@ -11,6 +11,9 @@ from uuid import uuid4
 import h5py
 import numpy as np
 
+import pysam
+import gzip
+
 from fast5_research.fast5 import Fast5, iterate_fast5
 from fast5_research.fast5_bulk import BulkFast5
 from fast5_research.util import _sanitize_data_for_writing, readtsv, group_vector
@@ -281,6 +284,101 @@ def build_read_index():
              if i % 10 == 0:
                  logger.info("Indexed {}/{} files. {} reads".format(i, len(src_files), n_reads))
 
+def filter_file_from_bam():
+    logging.basicConfig(
+        format='[%(asctime)s - %(name)s] %(message)s',
+        datefmt='%H:%M:%S', level=logging.INFO
+    )
+    logger = logging.getLogger('Filter')
+    parser = argparse.ArgumentParser(
+        description='Create filter file from BAM and sequencing summary')
+    parser.add_argument('--seperator',
+                        dest="SEP",
+                        default='\t',
+                        help="Seperator in sequencing summary files")
+    parser.add_argument('--id-col',
+                        dest="READID_COL",
+                        default='read_id',
+                        help="Column name for read_id in sequencing summary files")
+    parser.add_argument('--fname-col',
+                        dest="FNAME_COL",
+                        default='filename',
+                        help="Column name for fast5 filename in sequencing summary files")
+    parser.add_argument('-r', '--region',
+                        dest="REGION",
+                        default=None,
+                        help="Print reads only from this region")
+    parser.add_argument('--workers', type=int, default=4,
+        help='Number of worker processes.')
+    parser.add_argument('-p', '--primary-only',
+                        dest="PRIMARY",
+                        action='store_true',
+                        help="Ignore secondary and supplementary alignments")
+
+    parser.add_argument('BAM', help='Path to BAM file')
+    parser.add_argument("SUMMARY",
+                        type=str,
+                        nargs='+',
+                        help="Sequencing summary files")
+
+    args = parser.parse_args()
+
+    region = args.REGION
+    primary_only = args.PRIMARY
+    bam_in = args.BAM
+    summary_files = args.SUMMARY
+    threads = args.workers
+    readid_col = args.READID_COL
+    fast5_col = args.FNAME_COL
+    sep = args.SEP
+
+    if not region:
+        logger.info("No region specified. Extracting all reads from BAM file")
+    else:
+        logger.info("Extracting read ids from {}".format(region))
+
+    read_ids = {}
+    with pysam.AlignmentFile(bam_in, "rb", threads=threads) as infile:
+        for read in infile.fetch(region=region):
+            if read.is_unmapped or (primary_only and (read.is_secondary or read.is_supplementary)):
+                continue
+            read_ids[read.query_name] = None
+
+    n = len(read_ids)
+    logger.info("Reads found in BAM file: {}".format(n))
+    if n == 0:
+        return
+
+    # Print header
+    print("read_id", "filename", sep='\t')
+
+    n_print = 0
+    for summary_file in summary_files:
+        logging.info("Opening: {}".format(summary_file))
+        with gzip.open(summary_file) as fh:
+            header = fh.readline().decode().strip()
+            header_cols = header.split(sep)
+            readid_idx = header_cols.index(readid_col)
+            path_idx = header_cols.index(fast5_col)
+
+            for line in fh:
+                line = line.decode().strip()
+                if not line:
+                    continue
+                cols = line.split(sep)
+                readid = cols[readid_idx]
+                f5_path = cols[path_idx]
+                if readid not in read_ids:
+                    continue
+
+                if read_ids[readid]:
+                    logging.error("Two entries found for {} ({} and {})".format(readid, read_ids[readid], f5_path))
+                    continue
+
+                n_print += 1
+                read_ids[readid] = f5_path
+                print(readid, read_ids[readid], sep='\t')
+    logging.info("Filename found for {} reads ({}%)".format(n_print, round(n_print * 100.0 / n)))
 
 def filter_multi_reads():
     logging.basicConfig(
