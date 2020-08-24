@@ -165,9 +165,9 @@ class BulkFast5Test(unittest.TestCase):
     def test_parse_read_data(self):
         """Test parsing the reads dataset """
 
-        reads = list(self.fh.get_reads(self.fh.channels[0], transitions=False))
+        reads = list(self.fh.get_reads(self.fh.channels[0], transitions=False, multi_row_class='penultimate'))
         self.assertEqual(len(reads), 953)
-        reads = list(self.fh.get_reads(self.fh.channels[0], transitions=True, penultimate_class=False))
+        reads = list(self.fh.get_reads(self.fh.channels[0], transitions=True, multi_row_class='final'))
         self.assertEqual(len(reads), 967)
 
         # check a single-row read
@@ -197,11 +197,17 @@ class BulkFast5Test(unittest.TestCase):
                     'median_sd']:
             self.assertAlmostEqual(reads[2][key], expected[key])
 
-        # test the penultimate_class option
-        reads = list(self.fh.get_reads(self.fh.channels[0], penultimate_class=True))
+        # test the multi_row_class option
+        reads = list(self.fh.get_reads(self.fh.channels[0], multi_row_class='penultimate'))
         self.assertEqual(reads[2]['classification'], 'user1')
-        reads = list(self.fh.get_reads(self.fh.channels[0], penultimate_class=False))
+        reads = list(self.fh.get_reads(self.fh.channels[0], multi_row_class='final'))
         self.assertEqual(reads[2]['classification'], 'zero')
+        reads = list(self.fh.get_reads(self.fh.channels[0], multi_row_class='modal'))
+        self.assertEqual(reads[2]['classification'], 'unavailable')
+        reads = list(self.fh.get_reads(self.fh.channels[0], multi_row_class='auto'))
+        self.assertEqual(reads[2]['classification'], 'unavailable')
+        with self.assertRaises(ValueError):
+            reads = list(self.fh.get_reads(self.fh.channels[0], multi_row_class='not_a_choice'))
 
     def test_parse_voltage_by_index(self):
         """Test parsing the voltage dataset sliced by indices"""
