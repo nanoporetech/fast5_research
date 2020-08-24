@@ -278,14 +278,24 @@ class BulkFast5(h5py.File):
         return self[self.__read_data__.format(channel)]
 
 
-    def get_reads(self, channel, transitions=False, penultimate_class=True):
+    def get_reads(self, channel, transitions=False, multi_row_class='auto'):
         """Parse channel read data to yield details of reads.
 
         :param channel: channel number int
         :param transitions: if True, include transition reads
-        :param penultimate_class: if True, for reads which span multiple rows,
-                                 use the classification from the penultimate row.
+        :param multi_row_class: options: 'auto', modal, 'penultimate', 'final'.
+            For reads which span multiple rows, use the classification from
+            'auto': modal class if present, penultimate row if not
+            'modal': modal class if present
+            'penultimate': penultimate row
+            'final': final row.
+            Modal classification not supported by very old versions of MinKNOW.
          """
+
+        multi_row_choices = {'auto', 'modal', 'penultimate', 'final'}
+        if multi_row_class not in multi_row_choices:
+            raise ValueError('''{} is not one of the permitted choices for
+                multi_row_class. Permitted choices: {}.'''.format(multi_row_class, multi_row_choices))
 
         read_data = self._get_reads_data(channel)
 
@@ -299,8 +309,11 @@ class BulkFast5(h5py.File):
         required_keys = return_keys.union(additional_keys).difference(computed_keys)
         for key in required_keys:
             if key not in read_data.dtype.names:
-
                 raise KeyError('The read data did not contain the required key {}.'.format(key))
+
+        if multi_row_class == 'modal':
+            if 'modal_classification' not in read_data.dtype.names:
+                raise KeyError("The read data did not contain the key 'modal_classification'.")
 
         # classification is enumerated
         enum_map = h5py.check_dtype(enum=read_data.dtype['classification'])
@@ -322,10 +335,22 @@ class BulkFast5(h5py.File):
                 first_local_median = row['local_median']
             else:
                 accum_stats['read_length'] += row['read_length']
-                if penultimate_class:  # use classification from previous row
+
+                if multi_row_class == 'auto':  # use modal classification if column present, use penultimate if not
+                    if 'modal_classification' in read_data.dtype.names:
+                        accum_stats['classification'] = row['modal_classification']
+                    else:
+                        accum_stats['classification'] = read_data[n - 1]['classification']
+
+                if multi_row_class == 'modal':  # use modal classification if column present
+                    accum_stats['classification'] = row['modal_classification']
+
+                if multi_row_class == 'penultimate':  # use classification from previous row
                     accum_stats['classification'] = read_data[n - 1]['classification']
-                else:  # use classification from current row
+
+                if multi_row_class == 'final':  # use classification from current row
                     accum_stats['classification'] = row['classification']
+
                 accum_stats['drift'] = abs(row['local_median'] - first_local_median)
 
             # pick out only the columns we want
