@@ -1,0 +1,870 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fast5_research.util &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Fast5 Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmdline.html">Command line Programs</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fast5_research.html">fast5_research package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fast5_research.util</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fast5_research.util</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">tee</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="nb">pow</span><span class="p">,</span> <span class="n">log10</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.lib.recfunctions</span> <span class="k">as</span> <span class="nn">nprf</span>
+
+
+<div class="viewcode-block" id="qstring_to_phred"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.qstring_to_phred">[docs]</a><span class="k">def</span> <span class="nf">qstring_to_phred</span><span class="p">(</span><span class="n">quality</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute standard phred scores from a quality string.&quot;&quot;&quot;</span>
+    <span class="n">qscores</span> <span class="o">=</span> <span class="p">[</span><span class="nb">ord</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">-</span> <span class="mi">33</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">quality</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">qscores</span></div>
+
+
+<div class="viewcode-block" id="mean_qscore"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.mean_qscore">[docs]</a><span class="k">def</span> <span class="nf">mean_qscore</span><span class="p">(</span><span class="n">scores</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the phred score corresponding to the mean of the probabilities</span>
+<span class="sd">    associated with the phred scores provided. Taken from chimaera.common.utilities.</span>
+
+
+<span class="sd">    :param scores: Iterable of phred scores.</span>
+
+<span class="sd">    :returns: Phred score corresponding to the average error rate, as</span>
+<span class="sd">        estimated from the input phred scores.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">sum_prob</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">scores</span><span class="p">:</span>
+        <span class="n">sum_prob</span> <span class="o">+=</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">val</span><span class="p">)</span>
+    <span class="n">mean_prob</span> <span class="o">=</span> <span class="n">sum_prob</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">10.0</span> <span class="o">*</span> <span class="n">log10</span><span class="p">(</span><span class="n">mean_prob</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="kmer_overlap_gen"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.kmer_overlap_gen">[docs]</a><span class="k">def</span> <span class="nf">kmer_overlap_gen</span><span class="p">(</span><span class="n">kmers</span><span class="p">,</span> <span class="n">moves</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;From a list of kmers return the character shifts between them.</span>
+<span class="sd">    (Movement from i to i+1 entry, e.g. [AATC,ATCG] returns [0,1]).</span>
+<span class="sd">    Allowed moves may be specified in moves argument in order of preference.</span>
+<span class="sd">    Taken from dragonet.bio.seq_tools</span>
+
+<span class="sd">    :param kmers: sequence of kmer strings.</span>
+<span class="sd">    :param moves: allowed movements, if None all movements to length of kmer</span>
+<span class="sd">        are allowed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">yield</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">last_kmer</span><span class="p">,</span> <span class="n">this_kmer</span> <span class="ow">in</span> <span class="n">window</span><span class="p">(</span><span class="n">kmers</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">moves</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">this_kmer</span><span class="p">)</span>
+                <span class="n">moves</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">l</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">this_kmer</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">moves</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">last_kmer</span><span class="p">[:</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="n">this_kmer</span><span class="p">[</span><span class="o">-</span><span class="n">j</span><span class="p">:]:</span>
+                    <span class="k">yield</span> <span class="n">j</span>
+                    <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">l</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">last_kmer</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">l</span><span class="p">]</span> <span class="o">==</span> <span class="n">this_kmer</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="n">j</span><span class="p">]:</span>
+                    <span class="k">yield</span> <span class="n">j</span>
+                    <span class="k">break</span>
+            <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">last_kmer</span> <span class="o">==</span> <span class="n">this_kmer</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="mi">0</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">l</span>
+                <span class="k">break</span></div>
+
+
+<div class="viewcode-block" id="build_mapping_table"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.build_mapping_table">[docs]</a><span class="k">def</span> <span class="nf">build_mapping_table</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">ref_seq</span><span class="p">,</span> <span class="n">post</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build a mapping table based on output of a dragonet.mapper style object.</span>
+<span class="sd">    Taken from chimaera.common.utilities.</span>
+
+<span class="sd">    :param events: Numpy record array of events. Must contain the mean,</span>
+<span class="sd">        stdv, start and length fields.</span>
+<span class="sd">    :param ref_seq: String representation of the reference sequence.</span>
+<span class="sd">    :param post: Numpy 2D array containing the posteriors (event, state).</span>
+<span class="sd">    :param scale: Scaling object.</span>
+<span class="sd">    :param path: Numpy 1D array containing position in reference. May contain</span>
+<span class="sd">        negative values, which will be interpreted as &quot;bad emissions&quot;.</span>
+<span class="sd">    :param model: Model object to use.</span>
+
+<span class="sd">    :returns: numpy record array containing summary fields. One record per event.</span>
+
+<span class="sd">    ====================   =====================================================</span>
+<span class="sd">    Output Field           Description</span>
+<span class="sd">    ====================   =====================================================</span>
+<span class="sd">    *mean*                 mean value of event samples (level)</span>
+<span class="sd">    *scaled_mean*          *mean* scaled to the bare level emission (mean/mode)</span>
+<span class="sd">    *stdv*                 standard deviation of event samples (noise)</span>
+<span class="sd">    *scaled_stdv*          *stdv* scaled to the bare stdv emission (mode)</span>
+<span class="sd">    *start*                start time of event /s</span>
+<span class="sd">    *length*               length of event /s</span>
+<span class="sd">    *model_level*          modelled event level, i.e. the level emission</span>
+<span class="sd">                           associated with the kmer *kmer*, scaled to the data</span>
+<span class="sd">    *model_scaled_level*   bare level emission</span>
+<span class="sd">    *model_sd*             modelled event noise, i.e. the sd emission associated</span>
+<span class="sd">                           with the kmer *kmer*, scaled  to the data</span>
+<span class="sd">    *model_scaled_sd*      bare noise emission</span>
+<span class="sd">    *seq_pos*              aligned sequence position, position on Viterbi path</span>
+<span class="sd">    *p_seq_pos*            posterior probability of states on Viterbi path</span>
+<span class="sd">    *kmer*                 kmer identity of *seq_pos*</span>
+<span class="sd">    *mp_pos*               aligned sequence position, position with highest</span>
+<span class="sd">                           posterioir</span>
+<span class="sd">    *p_mp_pos*             posterior probability of most probable states</span>
+<span class="sd">    *mp_kmer*              kmer identity of *mp_kmer*</span>
+<span class="sd">    *good_emission*        whether or not the HMM has tagged event as fitting</span>
+<span class="sd">                           the model</span>
+<span class="sd">    ====================   =====================================================</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kmer_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;kmer&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">kmer_index</span> <span class="o">=</span> <span class="n">seq_to_kmers</span><span class="p">(</span><span class="n">ref_seq</span><span class="p">,</span> <span class="n">kmer_len</span><span class="p">)</span>
+    <span class="n">label_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="s1">&#39;kmer&#39;</span><span class="p">]))</span>
+    <span class="n">kmer_dtype</span> <span class="o">=</span> <span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kmer_len</span><span class="p">)</span>
+
+    <span class="n">column_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;scaled_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;stdv&#39;</span><span class="p">,</span> <span class="s1">&#39;scaled_stdv&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;model_level&#39;</span><span class="p">,</span> <span class="s1">&#39;model_scaled_level&#39;</span><span class="p">,</span> <span class="s1">&#39;model_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;model_scaled_sd&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;p_seq_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mp_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;seq_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;mp_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;move&#39;</span><span class="p">,</span> <span class="s1">&#39;good_emission&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;kmer&#39;</span><span class="p">,</span> <span class="s1">&#39;mp_kmer&#39;</span><span class="p">]</span>
+    <span class="n">column_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">*</span> <span class="mi">12</span> <span class="o">+</span> <span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">kmer_dtype</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">column_types</span><span class="p">)))</span>
+
+    <span class="n">zero_start</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">events</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Sequence position</span>
+    <span class="n">seq_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">path</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">seq_kmer</span> <span class="o">=</span> <span class="p">[</span><span class="n">kmer_index</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">seq_pos</span><span class="p">]</span>
+    <span class="n">seq_kmer_i</span> <span class="o">=</span> <span class="p">[</span><span class="n">label_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">seq_kmer</span><span class="p">]</span>
+
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq_pos</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;kmer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">seq_kmer</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;p_seq_pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">post</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">seq_pos</span><span class="p">]</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;move&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">seq_pos</span><span class="p">,</span> <span class="n">to_begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1"># Highest posterior positions</span>
+    <span class="n">mp_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;mp_pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mp_pos</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;mp_kmer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kmer_index</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mp_pos</span><span class="p">]</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;p_mp_pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">post</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">post</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;mp_pos&#39;</span><span class="p">]]</span>
+    <span class="c1"># The data</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span><span class="s1">&#39;length&#39;</span><span class="p">,</span> <span class="s1">&#39;stdv&#39;</span><span class="p">):</span>
+        <span class="n">table</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>
+    <span class="c1"># scaling data to model</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;scaled_mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">scale</span><span class="o">.</span><span class="n">shift</span> <span class="o">-</span> <span class="n">scale</span><span class="o">.</span><span class="n">drift</span> <span class="o">*</span> <span class="n">zero_start</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;scaled_stdv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;stdv&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale_sd</span>
+    <span class="c1"># The model</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_scaled_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="p">[</span><span class="s1">&#39;level_mean&#39;</span><span class="p">][</span><span class="n">seq_kmer_i</span><span class="p">]</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_scaled_sd&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">model</span><span class="p">[</span><span class="s1">&#39;sd_mean&#39;</span><span class="p">][</span><span class="n">seq_kmer_i</span><span class="p">]</span>
+    <span class="c1"># The model scaled to the data</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale</span><span class="o">.</span><span class="n">shift</span> <span class="o">+</span> <span class="n">scale</span><span class="o">.</span><span class="n">drift</span> <span class="o">*</span> <span class="n">zero_start</span> <span class="o">+</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale</span> <span class="o">*</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_scaled_level&#39;</span><span class="p">]</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_sd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale_sd</span> <span class="o">*</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;model_scaled_sd&#39;</span><span class="p">]</span>
+    <span class="c1"># Tag ignore and outlier states</span>
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;good_emission&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">path</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">table</span></div>
+
+
+<div class="viewcode-block" id="build_mapping_summary_table"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.build_mapping_summary_table">[docs]</a><span class="k">def</span> <span class="nf">build_mapping_summary_table</span><span class="p">(</span><span class="n">mapping_summary</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build a mapping summary table</span>
+
+<span class="sd">    :param mapping_summary: List of curr_map dictionaries</span>
+
+<span class="sd">    :returns: Numpy record array containing summary contents. One record per array element of mapping_summary</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set memory allocation for variable length strings</span>
+    <span class="c1"># This works, but there must be a better way</span>
+    <span class="n">max_len_name</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">max_len_direction</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">max_len_seq</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">summary_line</span> <span class="ow">in</span> <span class="n">mapping_summary</span><span class="p">:</span>
+        <span class="n">len_name</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">len_name</span> <span class="o">&gt;</span> <span class="n">max_len_name</span><span class="p">:</span>
+            <span class="n">max_len_name</span> <span class="o">=</span> <span class="n">len_name</span>
+
+        <span class="n">len_direction</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">len_direction</span> <span class="o">&gt;</span> <span class="n">max_len_direction</span><span class="p">:</span>
+            <span class="n">max_len_direction</span> <span class="o">=</span> <span class="n">len_direction</span>
+
+        <span class="n">len_seq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;seq&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">len_seq</span> <span class="o">&gt;</span> <span class="n">max_len_seq</span><span class="p">:</span>
+            <span class="n">max_len_seq</span> <span class="o">=</span> <span class="n">len_seq</span>
+
+    <span class="n">column_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;direction&#39;</span><span class="p">,</span> <span class="s1">&#39;is_best&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="s1">&#39;shift&#39;</span><span class="p">,</span> <span class="s1">&#39;drift&#39;</span><span class="p">,</span> <span class="s1">&#39;scale_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;var_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="s1">&#39;seq&#39;</span><span class="p">]</span>
+    <span class="n">column_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_len_name</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_len_direction</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">*</span> <span class="mi">7</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_len_seq</span><span class="p">)]</span>
+
+    <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping_summary</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">column_types</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">table_line</span><span class="p">,</span> <span class="n">summary_line</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">table</span><span class="p">,</span><span class="n">mapping_summary</span><span class="p">):</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">]</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scale</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;shift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;drift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">drift</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;scale_sd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scale_sd</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;var_sd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">var_sd</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;var&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">var</span>
+        <span class="n">table_line</span><span class="p">[</span><span class="s1">&#39;seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">summary_line</span><span class="p">[</span><span class="s1">&#39;seq&#39;</span><span class="p">]</span>
+
+    <span class="n">table</span><span class="p">[</span><span class="s1">&#39;is_best&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">is_best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">([</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;score&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">mapping_summary</span><span class="p">])</span>
+    <span class="n">table</span><span class="p">[</span><span class="n">is_best</span><span class="p">][</span><span class="s1">&#39;is_best&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">table</span></div>
+
+
+<div class="viewcode-block" id="create_basecall_1d_output"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.create_basecall_1d_output">[docs]</a><span class="k">def</span> <span class="nf">create_basecall_1d_output</span><span class="p">(</span><span class="n">raw_events</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the annotated event table and basecalling summaries similiar to chimaera.</span>
+
+<span class="sd">    :param raw_events: :class:`np.ndarray` with fields mean, stdv, start and,</span>
+<span class="sd">        length fields.</span>
+<span class="sd">    :param scale: :class:`dragonet.basecall.scaling.Scaler` object (or object</span>
+<span class="sd">        with attributes `shift`, `scale`, `drift`, `var`, `scale_sd`, `var_sd`,</span>
+<span class="sd">        and `var_sd`.</span>
+<span class="sd">    :param path: list containing state indices with respect to `model`.</span>
+<span class="sd">    :param model: `:class:dragonet.util.model.Model` object.</span>
+<span class="sd">    :param post: Two-dimensional :class:`np.ndarray` containing posteriors (event, state).</span>
+<span class="sd">    :param quality_data: :class:np.ndarray Array containing quality_data, used to annotate events.</span>
+
+<span class="sd">    :returns: A tuple of:</span>
+
+<span class="sd">        * the annotated input event table</span>
+<span class="sd">        * a dict of result</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">events</span> <span class="o">=</span> <span class="n">raw_events</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">model_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="s1">&#39;kmer&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">path</span><span class="p">])</span>
+    <span class="n">raw_model_level</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">model</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="s1">&#39;level_mean&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">path</span><span class="p">])</span>
+    <span class="n">move</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">kmer_overlap_gen</span><span class="p">(</span><span class="n">model_state</span><span class="p">)))</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+    <span class="n">stays</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">skips</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># Extend the event table</span>
+    <span class="n">read_start</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;start&#39;</span><span class="p">]</span>
+    <span class="n">model_level</span> <span class="o">=</span> <span class="n">scale</span><span class="o">.</span><span class="n">shift</span> <span class="o">+</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale</span> <span class="o">*</span> <span class="n">raw_model_level</span> <span class="o">+</span>\
+                  <span class="n">scale</span><span class="o">.</span><span class="n">drift</span> <span class="o">*</span> <span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">read_start</span><span class="p">)</span>
+    <span class="n">new_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;model_state&#39;</span><span class="p">,</span> <span class="s1">&#39;model_level&#39;</span><span class="p">,</span> <span class="s1">&#39;move&#39;</span><span class="p">]</span>
+    <span class="n">column_data</span> <span class="o">=</span> <span class="p">[</span><span class="n">model_state</span><span class="p">,</span> <span class="n">model_level</span><span class="p">,</span> <span class="n">move</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">post</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">new_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;weights&#39;</span><span class="p">)</span>
+        <span class="n">column_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+    <span class="n">drop_first</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">new_columns</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">events</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">nprf</span><span class="o">.</span><span class="n">drop_fields</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">drop_first</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">nprf</span><span class="o">.</span><span class="n">append_fields</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">new_columns</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">column_data</span><span class="p">,</span> <span class="n">asrecarray</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Compile the results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;num_events&#39;</span><span class="p">:</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="s1">&#39;called_events&#39;</span><span class="p">:</span> <span class="n">events</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+        <span class="s1">&#39;shift&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span>
+        <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+        <span class="s1">&#39;drift&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">drift</span><span class="p">,</span>
+        <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">var</span><span class="p">,</span>
+        <span class="s1">&#39;scale_sd&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale_sd</span><span class="p">,</span>
+        <span class="s1">&#39;var_sd&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">var_sd</span><span class="p">,</span>
+        <span class="s1">&#39;num_stays&#39;</span><span class="p">:</span> <span class="n">stays</span><span class="p">,</span>
+        <span class="s1">&#39;num_skips&#39;</span><span class="p">:</span> <span class="n">skips</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">table</span><span class="p">,</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="create_mapping_output"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.create_mapping_output">[docs]</a><span class="k">def</span> <span class="nf">create_mapping_output</span><span class="p">(</span><span class="n">raw_events</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">post</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_states</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">substates</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create the annotated event table and summaries similiar to chimaera</span>
+
+<span class="sd">    :param raw_events: :class:`np.ndarray` with fields `mean`, `stdv`, `start`,</span>
+<span class="sd">        and `length` fields.</span>
+<span class="sd">    :param scale: :class:`dragonet.basecall.scaling.Scaler` object (or object</span>
+<span class="sd">        with attributes `shift`, `scale`, `drift`, `var`, `scale_sd`, `var_sd`,</span>
+<span class="sd">        and `var_sd`.</span>
+<span class="sd">    :param path: list containing state indices with respect to `model`.</span>
+<span class="sd">    :param model: `:class:dragonet.util.model.Model` object.</span>
+<span class="sd">    :param seq: String representation of the reference sequence.</span>
+<span class="sd">    :param post: Two-dimensional :class:`np.ndarray` containing posteriors (event, state).</span>
+<span class="sd">    :param is_reverse: Mapping refers to &#39;-&#39; strand (bool).</span>
+<span class="sd">    :param substate: Mapping contains substates?</span>
+
+<span class="sd">    :returns: A tuple of:</span>
+<span class="sd">        * the annotated input event table,</span>
+<span class="sd">        * a dict of result.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">events</span> <span class="o">=</span> <span class="n">raw_events</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">is_reverse</span> <span class="k">else</span> <span class="s1">&#39;-&#39;</span>
+    <span class="n">has_post</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># If we don&#39;t have a posterior, pass a mock object</span>
+    <span class="k">if</span> <span class="n">post</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">n_states</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;n_states is required if post is None.&#39;</span><span class="p">)</span>
+        <span class="n">has_post</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">post</span> <span class="o">=</span> <span class="n">MockZeroArray</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">),</span> <span class="n">n_states</span><span class="p">))</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">build_mapping_table</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">post</span><span class="p">,</span> <span class="n">scale</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+    <span class="c1"># Delete mocked out columns</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">has_post</span><span class="p">:</span>
+        <span class="n">to_delete</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;p_seq_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;mp_pos&#39;</span><span class="p">,</span> <span class="s1">&#39;mp_kmer&#39;</span><span class="p">,</span> <span class="s1">&#39;p_mp_pos&#39;</span><span class="p">]</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">nprf</span><span class="o">.</span><span class="n">drop_fields</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">to_delete</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+        <span class="n">events</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">-</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">]</span>
+        <span class="n">ref_start</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ref_stop</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ref_start</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ref_stop</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="s1">&#39;seq_pos&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Compute movement stats.</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">stays</span><span class="p">,</span> <span class="n">skips</span> <span class="o">=</span> <span class="n">compute_movement_stats</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;direction&#39;</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
+        <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">seq</span><span class="p">,</span>
+        <span class="s1">&#39;ref_start&#39;</span><span class="p">:</span> <span class="n">ref_start</span><span class="p">,</span>
+        <span class="s1">&#39;ref_stop&#39;</span><span class="p">:</span> <span class="n">ref_stop</span><span class="p">,</span>
+        <span class="s1">&#39;shift&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">shift</span><span class="p">,</span>
+        <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+        <span class="s1">&#39;drift&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">drift</span><span class="p">,</span>
+        <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">var</span><span class="p">,</span>
+        <span class="s1">&#39;scale_sd&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">scale_sd</span><span class="p">,</span>
+        <span class="s1">&#39;var_sd&#39;</span><span class="p">:</span> <span class="n">scale</span><span class="o">.</span><span class="n">var_sd</span><span class="p">,</span>
+        <span class="s1">&#39;num_stays&#39;</span><span class="p">:</span> <span class="n">stays</span><span class="p">,</span>
+        <span class="s1">&#39;num_skips&#39;</span><span class="p">:</span> <span class="n">skips</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">table</span><span class="p">,</span> <span class="n">results</span></div>
+
+
+<div class="viewcode-block" id="MockZeroArray"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.MockZeroArray">[docs]</a><span class="k">class</span> <span class="nc">MockZeroArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mock enough of ndarray interface to be passable as a posterior matrix</span>
+<span class="sd">        to chimaera build_mapping_table</span>
+
+<span class="sd">        :param shape: tuple, shape of array</span>
+<span class="sd">      </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+
+<div class="viewcode-block" id="MockZeroArray.argmax"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.MockZeroArray.argmax">[docs]</a>    <span class="k">def</span> <span class="nf">argmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fake argmax values of an array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="o">-</span><span class="n">axis</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="validate_event_table"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.validate_event_table">[docs]</a><span class="k">def</span> <span class="nf">validate_event_table</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if an object contains all columns of a basic event array.&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Table is not a ndarray.&#39;</span><span class="p">)</span>
+
+    <span class="n">req_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;stdv&#39;</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">req_fields</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+            <span class="s1">&#39;Array does not contain fields for event array: </span><span class="si">{}</span><span class="s1">, got </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">req_fields</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_model_table"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.validate_model_table">[docs]</a><span class="k">def</span> <span class="nf">validate_model_table</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if an object contains all columns of a dragonet Model.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Table is not a ndarray.&#39;</span><span class="p">)</span>
+
+    <span class="n">req_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;kmer&#39;</span><span class="p">,</span> <span class="s1">&#39;level_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;level_stdv&#39;</span><span class="p">,</span> <span class="s1">&#39;sd_mean&#39;</span><span class="p">,</span> <span class="s1">&#39;sd_stdv&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">req_fields</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+            <span class="s1">&#39;Object does not contain fields required for Model: </span><span class="si">{}</span><span class="s1">, got </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">req_fields</span><span class="p">,</span> <span class="n">table</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+            <span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_scale_object"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.validate_scale_object">[docs]</a><span class="k">def</span> <span class="nf">validate_scale_object</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if an object contains all attributes of dragonet Scaler.&quot;&quot;&quot;</span>
+
+    <span class="n">req_attributes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;shift&#39;</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="s1">&#39;drift&#39;</span><span class="p">,</span> <span class="s1">&#39;var&#39;</span><span class="p">,</span> <span class="s1">&#39;scale_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;var_sd&#39;</span><span class="p">]</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Object does not contain attributes required for Scaler: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">req_attributes</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">all</span><span class="p">([</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">req_attributes</span><span class="p">]),</span> <span class="n">msg</span></div>
+
+
+<div class="viewcode-block" id="compute_movement_stats"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.compute_movement_stats">[docs]</a><span class="k">def</span> <span class="nf">compute_movement_stats</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute movement stats from a mapping state path</span>
+
+<span class="sd">    :param path: :class:`np.ndarry` containing position in reference.</span>
+<span class="sd">        Negative values are interpreted as &quot;bad emissions&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">vitstate_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">path</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">move</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ediff1d</span><span class="p">(</span><span class="n">vitstate_indices</span><span class="p">,</span> <span class="n">to_begin</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+    <span class="n">stays</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">skips</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="n">move</span><span class="p">,</span> <span class="n">stays</span><span class="p">,</span> <span class="n">skips</span></div>
+
+
+<div class="viewcode-block" id="seq_to_kmers"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.seq_to_kmers">[docs]</a><span class="k">def</span> <span class="nf">seq_to_kmers</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Turn a string into a list of (overlapping) kmers.</span>
+
+<span class="sd">    e.g. perform the transformation:</span>
+
+<span class="sd">    &#39;ATATGCG&#39; =&gt; [&#39;ATA&#39;,&#39;TAT&#39;, &#39;ATG&#39;, &#39;TGC&#39;, &#39;GCG&#39;]</span>
+
+<span class="sd">    :param seq: character string</span>
+<span class="sd">    :param length: length of kmers in output</span>
+
+<span class="sd">    :returns: A list of overlapping kmers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">x</span><span class="p">:</span><span class="n">x</span> <span class="o">+</span> <span class="n">length</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span> <span class="o">-</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="window"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.window">[docs]</a><span class="k">def</span> <span class="nf">window</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create an iterator returning a sliding window from another iterator</span>
+
+<span class="sd">    :param iterable: Iterator</span>
+<span class="sd">    :param size: Size of window</span>
+
+<span class="sd">    :returns: an iterator returning a tuple containing the data in the window</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Window size for iterator should be strictly positive, got </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+    <span class="n">iters</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">iters</span><span class="p">[</span><span class="n">i</span><span class="p">:]:</span>
+            <span class="nb">next</span><span class="p">(</span><span class="n">each</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">iters</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="readtsv"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.readtsv">[docs]</a><span class="k">def</span> <span class="nf">readtsv</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a tsv file into a numpy array with required field checking</span>
+
+<span class="sd">    :param fname: filename to read. If the filename extension is</span>
+<span class="sd">        gz or bz2, the file is first decompressed.</span>
+<span class="sd">    :param fields: list of required fields.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">file_has_fields</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;File </span><span class="si">{}</span><span class="s1"> does not contain requested required fields </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fields</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;names&#39;</span><span class="p">,</span> <span class="s1">&#39;delimiter&#39;</span><span class="p">,</span> <span class="s1">&#39;dtype&#39;</span><span class="p">]:</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf8&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="c1">#  Numpy tricks to force single element to be array of one row</span>
+    <span class="k">return</span> <span class="n">table</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="docstring_parameter"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.docstring_parameter">[docs]</a><span class="k">def</span> <span class="nf">docstring_parameter</span><span class="p">(</span><span class="o">*</span><span class="n">sub</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Allow docstrings to contain parameters.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">dec</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="n">obj</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">sub</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">return</span> <span class="n">dec</span></div>
+
+
+<div class="viewcode-block" id="med_mad"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.med_mad">[docs]</a><span class="k">def</span> <span class="nf">med_mad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the Median Absolute Deviation, i.e., the median</span>
+<span class="sd">    of the absolute deviations from the median, and the median</span>
+
+<span class="sd">    :param data: A :class:`ndarray` object</span>
+<span class="sd">    :param factor: Factor to scale MAD by. Default (None) is to be consistent</span>
+<span class="sd">        with the standard deviation of a normal distribution</span>
+<span class="sd">        (i.e. mad( N(0,\sigma^2) ) = \sigma).</span>
+<span class="sd">    :param axis: For multidimensional arrays, which axis to calculate over</span>
+<span class="sd">    :param keepdims: If True, axis is kept as dimension of length 1</span>
+
+<span class="sd">    :returns: a tuple containing the median and MAD of the data</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="mf">1.4826</span>
+    <span class="n">dmed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dmad</span> <span class="o">=</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">dmed</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dmed</span> <span class="o">=</span> <span class="n">dmed</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dmad</span> <span class="o">=</span> <span class="n">dmad</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">keepdims</span><span class="p">:</span>
+        <span class="n">dmed</span> <span class="o">=</span> <span class="n">dmed</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+        <span class="n">dmad</span> <span class="o">=</span> <span class="n">dmad</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dmed</span><span class="p">,</span> <span class="n">dmad</span></div>
+
+
+<div class="viewcode-block" id="mad"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.mad">[docs]</a><span class="k">def</span> <span class="nf">mad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the Median Absolute Deviation, i.e., the median</span>
+<span class="sd">    of the absolute deviations from the median, and (by default)</span>
+<span class="sd">    adjust by a factor for asymptotically normal consistency.</span>
+
+<span class="sd">    :param data: A :class:`ndarray` object</span>
+<span class="sd">    :param factor: Factor to scale MAD by. Default (None) is to be consistent</span>
+<span class="sd">        with the standard deviation of a normal distribution</span>
+<span class="sd">        (i.e. mad( N(0,\sigma^2) ) = \sigma).</span>
+<span class="sd">    :param axis: For multidimensional arrays, which axis to calculate the median over.</span>
+<span class="sd">    :param keepdims: If True, axis is kept as dimension of length 1</span>
+
+<span class="sd">    :returns: the (scaled) MAD</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_</span> <span class="p">,</span> <span class="n">dmad</span> <span class="o">=</span> <span class="n">med_mad</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="n">keepdims</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dmad</span></div>
+
+
+<div class="viewcode-block" id="file_has_fields"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.file_has_fields">[docs]</a><span class="k">def</span> <span class="nf">file_has_fields</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check that a tsv file has given fields</span>
+
+<span class="sd">    :param fname: filename to read. If the filename extension is</span>
+<span class="sd">        gz or bz2, the file is first decompressed.</span>
+<span class="sd">    :param fields: list of required fields.</span>
+
+<span class="sd">    :returns: boolean</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Allow a quick return</span>
+    <span class="n">req_fields</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">req_fields</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">req_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">fields</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">req_fields</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">req_fields</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">req_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">req_fields</span><span class="p">)</span>
+
+    <span class="n">inspector</span> <span class="o">=</span> <span class="nb">open</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.gz&#39;</span><span class="p">:</span>
+        <span class="n">inspector</span> <span class="o">=</span> <span class="n">gzopen</span>
+    <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.bz2&#39;</span><span class="p">:</span>
+        <span class="n">inspector</span> <span class="o">=</span> <span class="n">bzopen</span>
+
+    <span class="n">has_fields</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">with</span> <span class="n">inspector</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">present_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">))</span>
+        <span class="n">has_fields</span> <span class="o">=</span> <span class="n">req_fields</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">present_fields</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">has_fields</span></div>
+
+
+<div class="viewcode-block" id="get_changes"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.get_changes">[docs]</a><span class="k">def</span> <span class="nf">get_changes</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return only rows of a structured array which are not equal to the previous row.</span>
+
+<span class="sd">    :param data: Numpy record array.</span>
+<span class="sd">    :param ignore_cols: iterable of column names to ignore in checking for equality between rows.</span>
+<span class="sd">    :param use_cols: iterable of column names to include in checking for equality between rows (only used if ignore_cols is None).</span>
+
+<span class="sd">    :returns: Numpy record array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ignore_cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ignore_cols</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">use_cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">use_cols</span><span class="p">)</span>
+    <span class="n">changed_inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">cols</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">data</span><span class="p">[</span><span class="n">cols</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">changed_inds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">changed_inds</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[(</span><span class="n">changed_inds</span><span class="p">,)]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_clean</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert numpy numeric types to their python equivalents.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+        <span class="n">conversion</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">conversion</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">conversion</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">conversion</span>
+    <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span> <span class="nf">_clean_attrs</span><span class="p">(</span><span class="n">attrs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">_clean</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">_clean</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
+<span class="k">def</span> <span class="nf">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unicode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">dtypes</span> <span class="o">=</span> <span class="n">dtype_descr</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dtypes</span><span class="p">):</span>
+            <span class="n">type_check</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">type_check</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="c1"># an enum?</span>
+                <span class="k">return</span> <span class="n">data</span>
+            <span class="k">if</span> <span class="n">type_check</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;&lt;U&#39;</span><span class="p">):</span>
+                <span class="c1"># numpy.astype can&#39;t handle empty string datafields for some</span>
+                <span class="c1"># reason, so we&#39;ll explicitly state that.</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span>
+                                          <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Empty datafield </span><span class="si">{}</span><span class="s1"> cannot be converted&#39;</span>
+                                    <span class="s1">&#39; by np.astype.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="n">dtypes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:]))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtypes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">def</span> <span class="nf">_sanitize_data_for_reading</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="o">.</span><span class="n">major</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;S&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dtypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dtype_descr</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dtypes</span><span class="p">):</span>
+                <span class="n">type_check</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">type_check</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                    <span class="c1"># an enum?</span>
+                    <span class="k">return</span> <span class="n">data</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;|S&#39;</span><span class="p">):</span>
+                    <span class="c1"># numpy.astype can&#39;t handle empty datafields for some</span>
+                    <span class="c1"># reason, so we&#39;ll explicitly state that.</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span>
+                                              <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Empty datafield </span><span class="si">{}</span><span class="s1"> cannot be converted&#39;</span>
+                                        <span class="s1">&#39; by np.astype.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="n">dtypes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;&lt;U</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:]))</span>
+
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;|u&#39;</span><span class="p">):</span>
+                    <span class="c1"># there seems to be a bug in astype</span>
+                    <span class="n">dtypes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;|u&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtypes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<div class="viewcode-block" id="dtype_descr"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.dtype_descr">[docs]</a><span class="k">def</span> <span class="nf">dtype_descr</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get arr.dtype.descr</span>
+<span class="sd">    Views of structured arrays in which columns have been re-ordered nolonger support arr.dtype.descr</span>
+<span class="sd">    see https://github.com/numpy/numpy/commit/dd8a2a8e29b0dc85dca4d2964c92df3604acc212</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">descr</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">([(</span><span class="n">n</span><span class="p">,</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">descr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">arr</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="group_vector"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.util.group_vector">[docs]</a><span class="k">def</span> <span class="nf">group_vector</span><span class="p">(</span><span class="n">arr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Group a vector by unique values.</span>
+
+<span class="sd">    :param arr: input vector to be grouped.</span>
+
+<span class="sd">    :returns: a dictionary mapping unique values to arrays of indices of the</span>
+<span class="sd">        input vector.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">groups</span><span class="p">,</span> <span class="n">keys_as_int</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">return_inverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">n_keys</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">keys_as_int</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_keys</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keys_as_int</span><span class="p">):</span>
+        <span class="n">indices</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">indices</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

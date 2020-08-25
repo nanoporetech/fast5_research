@@ -1,0 +1,1327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fast5_research.fast5_bulk &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Fast5 Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmdline.html">Command line Programs</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fast5_research.html">fast5_research package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fast5_research.fast5_bulk</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fast5_research.fast5_bulk</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">fast5_research.util</span> <span class="kn">import</span> <span class="n">dtype_descr</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">version_info</span>
+<span class="kn">from</span> <span class="nn">xml.dom</span> <span class="kn">import</span> <span class="n">minidom</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">FutureWarning</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.lib.recfunctions</span> <span class="kn">import</span> <span class="n">append_fields</span>
+
+
+<span class="kn">from</span> <span class="nn">fast5_research.util</span> <span class="kn">import</span> <span class="n">get_changes</span><span class="p">,</span> <span class="n">_clean_attrs</span><span class="p">,</span> <span class="n">_sanitize_data_for_writing</span><span class="p">,</span> <span class="n">_sanitize_data_for_reading</span>
+
+<span class="k">if</span> <span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">StringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+
+<div class="viewcode-block" id="BulkFast5"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5">[docs]</a><span class="k">class</span> <span class="nc">BulkFast5</span><span class="p">(</span><span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for reading data from a bulk fast5 file&quot;&quot;&quot;</span>
+
+    <span class="n">__tracking_path__</span> <span class="o">=</span> <span class="s1">&#39;/UniqueGlobalKey/tracking_id&#39;</span>
+    <span class="n">__pore_model_old__</span> <span class="o">=</span> <span class="s1">&#39;Meta/User/pore_model&#39;</span>
+    <span class="n">__pore_model_new__</span> <span class="o">=</span> <span class="s1">&#39;Meta/User/analysis_conf&#39;</span>
+    <span class="n">__context_path__</span> <span class="o">=</span> <span class="s1">&#39;/UniqueGlobalKey/context_tags/&#39;</span>
+    <span class="n">__intermediate_data__</span> <span class="o">=</span> <span class="s1">&#39;/IntermediateData/&#39;</span>
+    <span class="n">__voltage_meta__</span> <span class="o">=</span> <span class="s1">&#39;/Device/VoltageMeta&#39;</span>
+    <span class="n">__voltage_data__</span> <span class="o">=</span> <span class="s1">&#39;/Device/MetaData&#39;</span>
+    <span class="n">__channel_meta__</span> <span class="o">=</span> <span class="s1">&#39;/IntermediateData/Channel_</span><span class="si">{}</span><span class="s1">/Meta&#39;</span>
+    <span class="n">__multiplex_data__</span> <span class="o">=</span> <span class="s1">&#39;/MultiplexData/Channel_</span><span class="si">{}</span><span class="s1">/Multiplex&#39;</span>
+
+    <span class="n">__raw_data__</span> <span class="o">=</span> <span class="s2">&quot;Raw/Channel_</span><span class="si">{}</span><span class="s2">/Signal&quot;</span>
+    <span class="n">__raw_meta__</span> <span class="o">=</span> <span class="s2">&quot;Raw/Channel_</span><span class="si">{}</span><span class="s2">/Meta&quot;</span>
+    <span class="n">__event_data__</span> <span class="o">=</span> <span class="s2">&quot;/IntermediateData/Channel_</span><span class="si">{}</span><span class="s2">/Events&quot;</span>
+    <span class="n">__read_data__</span> <span class="o">=</span> <span class="s2">&quot;/IntermediateData/Channel_</span><span class="si">{}</span><span class="s2">/Reads&quot;</span>
+    <span class="n">__state_data__</span> <span class="o">=</span> <span class="s2">&quot;/StateData/Channel_</span><span class="si">{}</span><span class="s2">/States&quot;</span>
+
+    <span class="c1"># The below refers to MinION Mk1 ASIC, may change in future</span>
+    <span class="n">__mk1_asic_mux_states__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;common_voltage_1&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;common_voltage_2&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;common_voltage_3&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s1">&#39;common_voltage_4&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s1">&#39;gnd&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+        <span class="s1">&#39;gnd_through_resistor&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+        <span class="s1">&#39;open_pore&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s1">&#39;test_current_1&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s1">&#39;test_current_2&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="s1">&#39;test_current_3&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+        <span class="s1">&#39;test_current_4&#39;</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+        <span class="s1">&#39;test_current_open_pore&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s1">&#39;unblock_voltage_1&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="s1">&#39;unblock_voltage_2&#39;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
+        <span class="s1">&#39;unblock_voltage_3&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s1">&#39;unblock_voltage_4&#39;</span><span class="p">:</span> <span class="mi">9</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an BulkFast5 instance.</span>
+
+<span class="sd">        :param filename: path to a bulk fast5 file.</span>
+<span class="sd">        :param mode: h5py opening mode.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">BulkFast5</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;r&#39;</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__intermediate_data__</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">channels</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;Channel_&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># we parse the history lazily</span>
+
+            <span class="c1"># Parse experimental metadata</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">exp_metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__tracking_path__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__context_path__</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">exp_metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Cannot read summary from </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+
+            <span class="c1"># This should be safe</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;Meta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_metadata"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_metadata">[docs]</a>    <span class="k">def</span> <span class="nf">get_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the metadata for the specified channel.</span>
+
+<span class="sd">        Look for first for events metadata, and fall-back on raw metadata, returning an empty dict if neither could be found.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_metadata&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_metadata</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_metadata</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_meta__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__channel_meta__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_raw</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span> <span class="c1"># use raw meta data</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__raw_meta__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_metadata</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">meta</span>
+        <span class="k">return</span> <span class="n">meta</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_event_detection_parameters"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_event_detection_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_event_detection_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the full set of parameters related to event detection &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pore_model_old__</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>   <span class="c1"># Old Minknow file</span>
+            <span class="n">xmldoc</span> <span class="o">=</span> <span class="n">minidom</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pore_model_old__</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">xmldoc</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s1">&#39;event_detection&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pore_model_new__</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>  <span class="c1"># New Minknow file</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pore_model_new__</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;false&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">result</span><span class="p">)[</span><span class="s1">&#39;event_detection&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_tracking_meta"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_tracking_meta">[docs]</a>    <span class="k">def</span> <span class="nf">get_tracking_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get tracking meta data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__tracking_path__</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_context_meta"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_context_meta">[docs]</a>    <span class="k">def</span> <span class="nf">get_context_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get context meta&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__context_path__</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.has_raw"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.has_raw">[docs]</a>    <span class="k">def</span> <span class="nf">has_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if there is raw data for this channel.&quot;&quot;&quot;</span>
+        <span class="n">raw_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__raw_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_data</span><span class="p">(</span><span class="n">raw_location</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.has_reads"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.has_reads">[docs]</a>    <span class="k">def</span> <span class="nf">has_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if there is read data for this channel.&quot;&quot;&quot;</span>
+        <span class="n">read_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__read_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_data</span><span class="p">(</span><span class="n">read_location</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.has_states"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.has_states">[docs]</a>    <span class="k">def</span> <span class="nf">has_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if there is State data for this channel.&quot;&quot;&quot;</span>
+        <span class="n">state_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__state_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_data</span><span class="p">(</span><span class="n">state_location</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_has_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return true if the given data path exists</span>
+
+<span class="sd">        :param location: str, path with fast5.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_paths&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">location</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_paths</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_paths</span><span class="p">[</span><span class="n">location</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_paths</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">location_split</span> <span class="o">=</span> <span class="n">location</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">location_split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">location_split</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">present</span> <span class="o">=</span> <span class="n">folder</span> <span class="ow">in</span> <span class="bp">self</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="n">folder</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_paths</span><span class="p">[</span><span class="n">location</span><span class="p">]</span> <span class="o">=</span> <span class="n">present</span>
+        <span class="k">return</span> <span class="n">present</span>
+
+
+    <span class="k">def</span> <span class="nf">_time_interval_to_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Translate a tuple of (start_sec, end_sec) to an index.&quot;&quot;&quot;</span>
+        <span class="n">start_sec</span><span class="p">,</span> <span class="n">end_sec</span> <span class="o">=</span> <span class="n">times</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">start_sec</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">end_sec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_seconds_to_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Translate a point in time to an index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Scale event data if necessary, else return unchanged.</span>
+
+<span class="sd">        If event metadata can&#39;t be found, assume events don&#39;t need scaling.&quot;&quot;&quot;</span>
+
+        <span class="n">meta_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;scaling_used&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">meta_data</span> <span class="ow">or</span> <span class="n">meta_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scaling_used&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">channel_scale</span> <span class="o">=</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;digitisation&#39;</span><span class="p">]</span>
+            <span class="n">channel_offset</span> <span class="o">=</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">channel_offset</span><span class="p">)</span> <span class="o">*</span> <span class="n">channel_scale</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_raw"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_raw">[docs]</a>    <span class="k">def</span> <span class="nf">get_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">use_scaling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;If available, parse channel raw data.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param times: tuple of floats (start_second, end_second)</span>
+<span class="sd">        :param raw_indices: tuple of ints (start_index, end_index)</span>
+<span class="sd">        :param use_scaling: if True, scale the current level</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_raw</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Channel </span><span class="si">{}</span><span class="s1"> does not contain raw data.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_interval_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+
+        <span class="n">raw_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__raw_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">raw_data</span><span class="p">][</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">if</span> <span class="n">use_scaling</span><span class="p">:</span>
+            <span class="n">meta_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="n">raw_unit</span> <span class="o">=</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;digitisation&#39;</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span> <span class="o">+</span> <span class="n">meta_data</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">])</span> <span class="o">*</span> <span class="n">raw_unit</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_events"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_events">[docs]</a>    <span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">event_indices</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                   <span class="n">use_scaling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse channel event data.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param times: tuple of floats (start_second, end_second)</span>
+<span class="sd">        :param raw_indices: tuple of ints (start_index, end_index)</span>
+<span class="sd">        :param event_indices: tuple of ints (start_index, end_index)</span>
+<span class="sd">        :param use_scaling: if True, scale the current level</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices &gt; event_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">event_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">ev</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">event_data</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_interval_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raw_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">event_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">],</span> <span class="n">raw_indices</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_sanitize_data_for_reading</span><span class="p">(</span><span class="n">ev</span><span class="p">[</span><span class="n">event_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">event_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+        <span class="c1"># Change variance to stdv column</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;variance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;variance&#39;</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;stdv&#39;</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="s1">&#39;variance&#39;</span> <span class="k">else</span> <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">use_scaling</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_reads_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse channel read data exactly as it is in the bulk fast5 file.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            No processing is done - reads might span several rows.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_reads</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Channel </span><span class="si">{}</span><span class="s1"> does not contain read data.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__read_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_reads"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_reads">[docs]</a>    <span class="k">def</span> <span class="nf">get_reads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">transitions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">multi_row_class</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse channel read data to yield details of reads.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param transitions: if True, include transition reads</span>
+<span class="sd">        :param multi_row_class: options: &#39;auto&#39;, modal, &#39;penultimate&#39;, &#39;final&#39;.</span>
+<span class="sd">            For reads which span multiple rows, use the classification from</span>
+<span class="sd">            &#39;auto&#39;: modal class if present, penultimate row if not</span>
+<span class="sd">            &#39;modal&#39;: modal class if present</span>
+<span class="sd">            &#39;penultimate&#39;: penultimate row</span>
+<span class="sd">            &#39;final&#39;: final row.</span>
+<span class="sd">            Modal classification not supported by very old versions of MinKNOW.</span>
+<span class="sd">         &quot;&quot;&quot;</span>
+
+        <span class="n">multi_row_choices</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;modal&#39;</span><span class="p">,</span> <span class="s1">&#39;penultimate&#39;</span><span class="p">,</span> <span class="s1">&#39;final&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">multi_row_class</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">multi_row_choices</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span><span class="si">{}</span><span class="s1"> is not one of the permitted choices for</span>
+<span class="s1">                multi_row_class. Permitted choices: </span><span class="si">{}</span><span class="s1">.&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">multi_row_class</span><span class="p">,</span> <span class="n">multi_row_choices</span><span class="p">))</span>
+
+        <span class="n">read_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reads_data</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="n">return_keys</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;read_start&#39;</span><span class="p">,</span> <span class="s1">&#39;read_length&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;event_index_start&#39;</span><span class="p">,</span> <span class="s1">&#39;event_index_end&#39;</span><span class="p">,</span> <span class="s1">&#39;classification&#39;</span><span class="p">,</span> <span class="s1">&#39;read_id&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;median_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;median_dwell&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span> <span class="s1">&#39;drift&#39;</span>
+        <span class="p">}</span>
+        <span class="n">additional_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;flags&#39;</span><span class="p">}</span>
+        <span class="n">computed_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;drift&#39;</span><span class="p">}</span>
+        <span class="n">required_keys</span> <span class="o">=</span> <span class="n">return_keys</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">additional_keys</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">computed_keys</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">required_keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">read_data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;The read data did not contain the required key </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">multi_row_class</span> <span class="o">==</span> <span class="s1">&#39;modal&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;modal_classification&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">read_data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;The read data did not contain the key &#39;modal_classification&#39;.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># classification is enumerated</span>
+        <span class="n">enum_map</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">check_dtype</span><span class="p">(</span><span class="n">enum</span><span class="o">=</span><span class="n">read_data</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">])</span>
+        <span class="n">classes</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enum_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="c1"># read dataset into memory, lest we return h5py objects</span>
+        <span class="n">read_data</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">[()]</span>
+
+        <span class="c1"># we need to combine &#39;event_index_start&#39;, &#39;read_start&#39; from first row in</span>
+        <span class="c1"># the read with sum &#39;read_length&#39; over all rows and all other cols from</span>
+        <span class="c1"># final row. If penultimate_class is True, use classification from penultimate row.</span>
+        <span class="c1"># We also need to calculate drift, which is the absolute difference</span>
+        <span class="c1"># between the local_median field of the first and last rows of a read.</span>
+        <span class="n">accum_stats</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">accum_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;event_index_start&#39;</span><span class="p">,</span> <span class="s1">&#39;read_start&#39;</span><span class="p">,</span> <span class="s1">&#39;read_length&#39;</span><span class="p">,</span> <span class="s1">&#39;classification&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">read_data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">accum_stats</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">accum_stats</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">accum_names</span><span class="p">}</span>
+                <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;drift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">first_local_median</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;local_median&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;read_length&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;read_length&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">multi_row_class</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>  <span class="c1"># use modal classification if column present, use penultimate if not</span>
+                    <span class="k">if</span> <span class="s1">&#39;modal_classification&#39;</span> <span class="ow">in</span> <span class="n">read_data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                        <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;modal_classification&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">multi_row_class</span> <span class="o">==</span> <span class="s1">&#39;modal&#39;</span><span class="p">:</span>  <span class="c1"># use modal classification if column present</span>
+                    <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;modal_classification&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">multi_row_class</span> <span class="o">==</span> <span class="s1">&#39;penultimate&#39;</span><span class="p">:</span>  <span class="c1"># use classification from previous row</span>
+                    <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">[</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">multi_row_class</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>  <span class="c1"># use classification from current row</span>
+                    <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span>
+
+                <span class="n">accum_stats</span><span class="p">[</span><span class="s1">&#39;drift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;local_median&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">first_local_median</span><span class="p">)</span>
+
+            <span class="c1"># pick out only the columns we want</span>
+            <span class="n">row_details</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">return_keys</span> <span class="o">-</span> <span class="n">computed_keys</span><span class="p">}</span>
+
+            <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;flags&#39;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="mh">0x1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># read has ended</span>
+                <span class="k">if</span> <span class="n">classes</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]]</span> <span class="o">==</span> <span class="s1">&#39;transition&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">transitions</span><span class="p">:</span>
+                    <span class="n">accum_stats</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># prepare for next read</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">accum_stats</span><span class="p">:</span>  <span class="c1"># replace / add computed keys</span>
+                        <span class="n">row_details</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">accum_stats</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="n">row_details</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">classes</span><span class="p">[</span><span class="n">row_details</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]]</span>
+                    <span class="k">yield</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="n">row_details</span><span class="p">)</span>
+                    <span class="n">accum_stats</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_state_changes"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_state_changes">[docs]</a>    <span class="k">def</span> <span class="nf">get_state_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse channel state changes.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_states</span><span class="p">(</span><span class="n">channel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Channel </span><span class="si">{}</span><span class="s1"> does not contain state data.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_state_changes&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_state_changes</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_state_changes</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_state_changes</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># state data is enumerated</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="s1">&#39;summary_state&#39;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__state_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)]</span>
+        <span class="n">enum_map</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">check_dtype</span><span class="p">(</span><span class="n">enum</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="n">enum_to_state</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">({</span><span class="n">v</span><span class="p">:</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enum_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+
+        <span class="c1"># translate ints into strings</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">enum_to_state</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="c1">#not a KeyError: see h5py/_hl/dataset.pyc in readtime_dtype(basetype, names)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;acquisition_raw_index&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">([(</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)],</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">append_fields</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+                                <span class="p">[</span><span class="s1">&#39;approx_raw_index_end&#39;</span><span class="p">,</span><span class="s1">&#39;summary_state&#39;</span><span class="p">],</span>
+                                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">states</span><span class="p">],</span> <span class="n">usemask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="c1"># set end of last state to something approximating infinity (the largest u64 int).</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index_end&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># some channels don&#39;t contain channel state data, just create a dummy array</span>
+            <span class="n">data</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span>  <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;u8&#39;</span><span class="p">),</span>
+                                         <span class="p">(</span><span class="s1">&#39;approx_raw_index_end&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;u8&#39;</span><span class="p">),</span>
+                                         <span class="p">(</span><span class="s1">&#39;summary_state&#39;</span><span class="p">,</span> <span class="s1">&#39;S28&#39;</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_state_changes</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">return</span> <span class="n">_sanitize_data_for_reading</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_state"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">raw_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find the channel state at a given time</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param raw_index: sample index</span>
+<span class="sd">        :param time: time in seconds</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">raw_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Need either a time or a raw_index argument&#39;</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state_changes</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+
+        <span class="c1"># Check if the requested index is before the first state entry</span>
+        <span class="k">if</span> <span class="n">raw_index</span> <span class="o">&lt;</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;No state data at index </span><span class="si">{}</span><span class="s1">, which is before first state at </span><span class="si">{}</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">raw_index</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="c1"># Now get last record before requested sample, handling the special case</span>
+        <span class="c1"># where there is no last record (i.e. if raw_index == 0)</span>
+        <span class="k">if</span> <span class="n">raw_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">],</span> <span class="n">raw_index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;summary_state&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">state</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_states_in_window"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_states_in_window">[docs]</a>    <span class="k">def</span> <span class="nf">get_states_in_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find all channel states within a time window.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param times: tuple of floats (start_second, end_second)</span>
+<span class="sd">        :param raw_indices: tuple of ints (start_index, end_index)</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">raw_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Need either a time or a raw_index argument&#39;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_state_changes</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">first_state</span><span class="p">,</span> <span class="n">last_state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">],</span> <span class="n">raw_indices</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="s1">&#39;summary_state&#39;</span><span class="p">][</span><span class="n">first_state</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">last_state</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_mux"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_mux">[docs]</a>    <span class="k">def</span> <span class="nf">get_mux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">raw_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wells_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_raw_index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find the multiplex well_id (&quot;the mux&quot;) at a given time</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param raw_index: sample index</span>
+<span class="sd">        :param time: time in seconds</span>
+<span class="sd">        :wells_only: bool, if True, ignore changes to mux states not in [1,2,3,4]</span>
+<span class="sd">                     and hence return the last well mux.</span>
+<span class="sd">        :return_raw_index: bool, if True, return tuple (mux, raw_index), raw_index being</span>
+<span class="sd">                     raw index when the mux was set.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            There are multiple mux states associated with each well (e.g. common_voltage_1 and unblock_volage_1).</span>
+<span class="sd">            Here, we return the well_id associated with the mux state (using self.enum_to_mux), i.e. 1 in both these cases.</span>
+
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">raw_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Need either a time or a raw_index argument&#39;</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mux_changes</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">wells_only</span><span class="o">=</span><span class="n">wells_only</span><span class="p">)</span>
+
+        <span class="c1"># Check if the requested index is before the first mux entry</span>
+        <span class="k">if</span> <span class="n">raw_index</span> <span class="o">&lt;</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;No mux data at index </span><span class="si">{}</span><span class="s1">, which is before first mux at </span><span class="si">{}</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">raw_index</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+
+        <span class="c1"># Now get last record before requested sample, handling the special case</span>
+        <span class="c1"># where there is no last record (i.e. if raw_index == 0)</span>
+        <span class="k">if</span> <span class="n">raw_index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">],</span> <span class="n">raw_index</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">mux</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enum_to_mux</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;well_id&#39;</span><span class="p">]]</span>
+
+        <span class="k">if</span> <span class="n">return_raw_index</span><span class="p">:</span>
+            <span class="n">raw_index</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">]</span>  <span class="c1"># when the mux was set</span>
+            <span class="k">return</span> <span class="n">mux</span><span class="p">,</span> <span class="n">raw_index</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mux</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_strip_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Strip dtype.metadata dicts from enumerated arrays.</span>
+
+<span class="sd">        :param data: structured np.array</span>
+<span class="sd">        :returns: view of the same data with the metadata removed.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            since h5py v 2.3, enumerated dtypes come with a dtype.metadata dict</span>
+<span class="sd">            see https://github.com/numpy/numpy/issues/6771 and</span>
+<span class="sd">            https://github.com/h5py/h5py/pull/355/commits/5da2e96942218ffb1c9b614be9be8409bea219f8</span>
+<span class="sd">            This can stop functions like recfunctions.append_fields working on</span>
+<span class="sd">            these arrays, so strip out this dict. as it&#39;s not writeable, just</span>
+<span class="sd">            create a view with the appropriate data type</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">str_type</span> <span class="ow">in</span> <span class="n">dtype_descr</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_type</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s1">&#39;enum&#39;</span> <span class="ow">in</span> <span class="n">str_type</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">str_type</span> <span class="o">=</span> <span class="n">str_type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">col</span><span class="p">,</span> <span class="n">str_type</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_mux_changes"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_mux_changes">[docs]</a>    <span class="k">def</span> <span class="nf">get_mux_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">wells_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get changes in multiplex settings for given channel.</span>
+
+<span class="sd">        :param channel: channel for which to fetch data</span>
+<span class="sd">        :wells_only: bool, if True, ignore changes to mux states not in [1,2,3,4]</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            There are multiple mux states associated with each well (e.g. 1:common_voltage_1 and 6:unblock_voltage_1).</span>
+<span class="sd">            Here, we return mux state numbers, e.g. 1 and 6, which can be linked to the well_id using self.enum_to_mux</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_mux_changes&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_mux_changes</span><span class="p">[</span><span class="n">wells_only</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_mux_changes</span><span class="p">[</span><span class="n">wells_only</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># cache mux changes separately for well_only True and False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_mux_changes</span> <span class="o">=</span> <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="p">{},</span> <span class="kc">False</span><span class="p">:</span> <span class="p">{}}</span>
+
+        <span class="n">enum_col</span> <span class="o">=</span> <span class="s1">&#39;well_id&#39;</span>
+        <span class="n">multiplex_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__multiplex_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">multiplex_data</span><span class="p">]</span>
+        <span class="n">enum</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="n">h5py</span><span class="o">.</span><span class="n">check_dtype</span><span class="p">(</span><span class="n">enum</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">enum_col</span><span class="p">]))</span>
+        <span class="k">assert</span> <span class="n">enum</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mk1_asic_mux_states__</span><span class="p">,</span> <span class="s1">&#39;Got unexpected multiplex states&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;enum_to_mux&quot;</span><span class="p">):</span>
+            <span class="c1"># Build a dict which relates enum values to mux.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enum_to_mux</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">enum</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">mux</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">mo</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\d)$&#39;</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">mux</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mo</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">enum_to_mux</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">mux</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[()]</span>  <span class="c1"># load into memory</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_strip_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># remove dtype.metadata dict present with h5py&gt;=2.3.0</span>
+
+        <span class="c1"># remove any rows where the mux state has not changed</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">get_changes</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ignore_cols</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">,))</span>
+
+        <span class="k">if</span> <span class="n">wells_only</span><span class="p">:</span>  <span class="c1"># only consider changes to wells in [1,2,3,4]</span>
+            <span class="n">wells</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;well_id&#39;</span><span class="p">],</span> <span class="n">wells</span><span class="p">)</span>
+            <span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># keep first mux, whatever it is</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_mux_changes</span><span class="p">[</span><span class="n">wells_only</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_mux_changes_in_window"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_mux_changes_in_window">[docs]</a>    <span class="k">def</span> <span class="nf">get_mux_changes_in_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find all mux changes within a time window.</span>
+
+<span class="sd">        :param channel: channel number int</span>
+<span class="sd">        :param times: tuple of floats (start_second, end_second)</span>
+<span class="sd">        :param raw_indices: tuple of ints (start_index, end_index)</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            There are multiple mux values associated with each well (e.g. 1:common_voltage_1 and 6:unblock_voltage_1).</span>
+<span class="sd">            Here, we return mux values, e.g. 1 and 6, which can be linked to the well_id using self.enum_to_mux.</span>
+
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">raw_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Need either a time or a raw_index argument&#39;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seconds_to_index</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">times</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">muxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_mux_changes</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">first_mux</span><span class="p">,</span> <span class="n">last_mux</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">muxes</span><span class="p">[</span><span class="s1">&#39;approx_raw_index&#39;</span><span class="p">],</span> <span class="n">raw_indices</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">muxes</span><span class="p">[</span><span class="n">first_mux</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="n">last_mux</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_waveform_timings"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_waveform_timings">[docs]</a>    <span class="k">def</span> <span class="nf">get_waveform_timings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract the timings of the waveforms (if any).</span>
+
+<span class="sd">         :returns: list of tuples of start and end times</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mux_timings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">on_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s2">&quot;Device&quot;</span><span class="p">][</span><span class="s2">&quot;AsicCommands&quot;</span><span class="p">])):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waveform_enabled</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="n">on_index</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;Device&quot;</span><span class="p">][</span><span class="s2">&quot;AsicCommands&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;frame_number&quot;</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">on_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># when _waveform_enabled(i) returns to False, save on and off</span>
+                <span class="c1"># timings</span>
+                <span class="n">off_index</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;Device&quot;</span><span class="p">][</span><span class="s2">&quot;AsicCommands&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="s2">&quot;frame_number&quot;</span><span class="p">]</span>
+                <span class="n">on_time</span> <span class="o">=</span> <span class="n">on_index</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+                <span class="n">off_time</span> <span class="o">=</span> <span class="n">off_index</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+                <span class="n">mux_timings</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">on_time</span><span class="p">,</span> <span class="n">off_time</span><span class="p">))</span>
+                <span class="n">on_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">mux_timings</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_waveform_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Checks AsicCommand history to see if the waveform command was issued.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">        Here is the relevant section of the engineering documentation.</span>
+<span class="sd">        engineering documentation (July 2015 version)</span>
+
+<span class="sd">        Settings from PC: 512 bytes</span>
+<span class="sd">        1. Equals 17 otherwise FPGA drops the parcel</span>
+<span class="sd">        2. Command for FPGA:</span>
+<span class="sd">            =1 load configuration data in ASIC</span>
+<span class="sd">            =2 begin reading data from ASIC</span>
+<span class="sd">            =3 reset ASIC chip</span>
+<span class="sd">            =5 load configuration and begin/continue reading - used for</span>
+<span class="sd">               real-time re-loading ASIC configuration</span>
+<span class="sd">        3.  4bit: enable zero supply voltage for Fan (&#39;1&#39;- Fan can be switched</span>
+<span class="sd">                  off completely, &#39;0&#39;- Fan is always On)</span>
+<span class="sd">            3bit: temperature control On/Off (&#39;1&#39; - On, &#39;0&#39; - Off)</span>
+<span class="sd">            2-1 bits: Fan speed control (&#39;00&#39; - Off, &#39;11&#39; - On</span>
+<span class="sd">                      (only when temperature control is off))</span>
+<span class="sd">            0 bit: soft temperature control (&#39;1&#39; - On, &#39;0&#39; - Off)</span>
+<span class="sd">        4.  0bit: On/Off ASIC analogue supply voltage (&#39;0&#39; - off, &#39;1&#39; - on)</span>
+<span class="sd">        5.  ASIC clock: &#39;000&#39; - 64MHz, &#39;001&#39; - 128MHz, &#39;010&#39; - 32MHz,</span>
+<span class="sd">                            &#39;100&#39; - 16MHz, &#39;110&#39; - 8MHz</span>
+<span class="sd">        6.  3 bit: Enable (&#39;1&#39; - on, &#39;0&#39; - off) channel mapping (channel</span>
+<span class="sd">                   sequence 0,1...510,511) for 512 channels mode</span>
+<span class="sd">            2 bit: Enable (&#39;1&#39; - on, &#39;0&#39; - off) ASIC configuration update every</span>
+<span class="sd">                   1ms with values for bias voltage from LUT</span>
+<span class="sd">            1-0 bits: Number of channels from ASIC: &#39;00&#39; - 128ch,</span>
+<span class="sd">                      &#39;01&#39;-256ch, &#39;10&#39; - 512ch</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">waveform_flag</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s2">&quot;Device&quot;</span><span class="p">][</span><span class="s2">&quot;AsicCommands&quot;</span><span class="p">][</span><span class="n">cmd_index</span><span class="p">][</span><span class="s2">&quot;command&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tostring</span><span class="p">()[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="c1"># if cmd is not a bytestring, convert waveform flag to an integer. Needed for python2.x compatibility</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">waveform_flag</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">waveform_flag</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">waveform_flag</span><span class="p">)</span>
+        <span class="n">waveform_enabled</span> <span class="o">=</span> <span class="n">waveform_flag</span> <span class="o">&amp;</span> <span class="mi">4</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">waveform_enabled</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_voltage"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_voltage">[docs]</a>    <span class="k">def</span> <span class="nf">get_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">use_scaling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extracts raw common electrode trace</span>
+
+<span class="sd">        :raw_indices: tuple of ints to limit section of voltage data loaded.</span>
+<span class="sd">        :use_scaling: bool, whether to scale voltage data. If no scaling meta is found,</span>
+<span class="sd">                      scale by -5 (as appropriate for MinION).</span>
+<span class="sd">        :return: voltage as array (including 5x multiplyer for MinKnow)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">raw_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_interval_to_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channels</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">times</span><span class="p">)</span>
+
+        <span class="n">voltages</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__voltage_data__</span>
+                        <span class="p">][</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="s1">&#39;bias_voltage&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">use_scaling</span><span class="p">:</span>
+            <span class="c1"># fast5 converted from ABF files have a voltage meta section</span>
+            <span class="c1"># containing scaling parameters</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__voltage_meta__</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">voltage_meta</span> <span class="o">=</span> <span class="n">_clean_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__voltage_meta__</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="n">voltage_meta</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">voltage_meta</span><span class="p">[</span><span class="s1">&#39;digitisation&#39;</span><span class="p">]</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="n">voltage_meta</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Assume MinION scaling of 5</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">voltages</span> <span class="o">=</span> <span class="p">(</span><span class="n">voltages</span> <span class="o">+</span> <span class="n">offset</span><span class="p">)</span> <span class="o">*</span> <span class="n">unit</span>
+
+        <span class="k">return</span> <span class="n">voltages</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_bias_voltage_changes"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes">[docs]</a>    <span class="k">def</span> <span class="nf">get_bias_voltage_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get changes in the bias voltage.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            For a long (-long-long) time the only logging of the common</span>
+<span class="sd">            electrode voltage was the experimental history (accurate to one</span>
+<span class="sd">            second). The addition of the voltage trace changed this, but this</span>
+<span class="sd">            dataset is cumbersome. MinKnow 1.x(.3?) added the asic command</span>
+<span class="sd">            history which is typically much shorter and therefore quicker to</span>
+<span class="sd">            query. The bias voltage is numerously record. For MinION asics</span>
+<span class="sd">            there is typically a -5X multiplier to convert the data into</span>
+<span class="sd">            correct units with the sign people are used to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_cached_voltage_changes&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_voltage_changes</span>
+
+        <span class="c1"># First try the asic command, fallback to the experimental history,</span>
+        <span class="c1"># and finally the voltage trace.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cached_voltage_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_from_asic_commands</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cached_voltage_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_from_exp_hist</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_cached_voltage_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bias_from_voltages</span><span class="p">()</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Cannot parse voltage changes.&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_voltage_changes</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_bias_from_voltages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract voltage changes from the voltage trace data.&quot;&quot;&quot;</span>
+
+        <span class="n">voltages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_voltage</span><span class="p">()</span>
+        <span class="n">changes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">voltages</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">voltages</span><span class="p">[</span><span class="mi">1</span><span class="p">:])[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">voltage_changes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">changes</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]</span>
+        <span class="p">)</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">voltages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">changes</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">voltages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">voltages</span><span class="p">[</span><span class="n">changes</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">voltage_changes</span>
+
+
+    <span class="k">def</span> <span class="nf">_bias_from_asic_commands</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract voltages in Asic commands, filtering to only changes.&quot;&quot;&quot;</span>
+
+        <span class="n">all_voltages</span> <span class="o">=</span> <span class="p">[</span><span class="n">AsicBCommand</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">bias_voltage</span>
+            <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;/Device/AsicCommands&#39;</span><span class="p">][</span><span class="s1">&#39;command&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">all_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="s1">&#39;/Device/AsicCommands&#39;</span><span class="p">][</span><span class="s1">&#39;frame_number&#39;</span><span class="p">]</span>
+
+        <span class="n">prev_voltage</span> <span class="o">=</span> <span class="n">all_voltages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">changes</span> <span class="o">=</span> <span class="p">[(</span><span class="n">all_frames</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prev_voltage</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">frame</span><span class="p">,</span> <span class="n">voltage</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">izip</span><span class="p">(</span><span class="n">all_frames</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">all_voltages</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="k">if</span> <span class="n">voltage</span> <span class="o">!=</span> <span class="n">prev_voltage</span><span class="p">:</span>
+                <span class="n">changes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">frame</span><span class="p">,</span> <span class="n">voltage</span><span class="p">))</span>
+
+        <span class="n">voltage_changes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="n">changes</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)]</span>
+        <span class="p">)</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">5</span>
+        <span class="k">return</span> <span class="n">voltage_changes</span>
+
+
+    <span class="k">def</span> <span class="nf">_bias_from_exp_hist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract voltage changes from experimental history.</span>
+
+<span class="sd">        ..note:: The experimental history is deprecated in MinKnow 1.3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_history</span><span class="p">()</span>
+        <span class="n">voltage_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span><span class="p">[</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">]</span>
+        <span class="n">voltage_changes</span><span class="p">[</span><span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="n">voltage_changes</span>
+
+
+<div class="viewcode-block" id="BulkFast5.get_bias_voltage_changes_in_window"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes_in_window">[docs]</a>    <span class="k">def</span> <span class="nf">get_bias_voltage_changes_in_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Find all mux voltage changes within a time window.</span>
+
+<span class="sd">        :param times: tuple of floats (start_second, end_second)</span>
+<span class="sd">        :param raw_indices: tuple of ints (start_index, end_index)</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            This is the bias voltage from the expt history (accurate to 1</span>
+<span class="sd">            second), and will not include any changes in voltage related to</span>
+<span class="sd">            waveforms. For the full voltage trace, use get_voltage.</span>
+
+<span class="sd">            Exactly one of the slice keyword arguments needs to be specified,</span>
+<span class="sd">            as the method will override them in the order of times</span>
+<span class="sd">            &gt; raw_indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">raw_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Need either a time or a raw_index argument&#39;</span>
+        <span class="k">if</span> <span class="n">times</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">raw_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span>
+        <span class="n">bias_voltage_changes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bias_voltage_changes</span><span class="p">()</span>
+        <span class="n">first_index</span><span class="p">,</span> <span class="n">last_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">bias_voltage_changes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">times</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bias_voltage_changes</span><span class="p">[</span><span class="n">first_index</span><span class="p">:</span><span class="n">last_index</span><span class="p">]</span></div>
+
+
+    <span class="n">__engine_states__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;minion_asic_temperature&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;minion_heatsink_temperature&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;set_bias_voltage&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;fan_speed&#39;</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">}</span>
+    <span class="n">__temp_fields__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;heatsink&#39;</span><span class="p">,</span> <span class="s1">&#39;asic&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BulkFast5.parse_history"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.parse_history">[docs]</a>    <span class="k">def</span> <span class="nf">parse_history</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse the experimental history to pull out various environmental factors.</span>
+<span class="sd">        The functions below are quite nasty, don&#39;t enquire too hard.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">exph_fh</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="s1">&#39;Meta/User&#39;</span><span class="p">][</span><span class="s1">&#39;experimental_history&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()))</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Cannot read experimental_history from fast5&#39;</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter_records</span><span class="p">(</span><span class="n">exph_fh</span><span class="p">):</span>
+            <span class="c1">#item should contain &#39;time&#39; and something else</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
+            <span class="n">field</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">time</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_states__</span><span class="p">[</span><span class="n">k</span><span class="p">])])</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_engine_state"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_engine_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_engine_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get changes in an engine state or the value of an engine</span>
+<span class="sd">        state at a given time.</span>
+
+<span class="sd">        :param state: the engine state to retrieve.</span>
+<span class="sd">        :param time: the time at which to grab engine state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_states__</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&#39;field&#39; argument must be one of </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__engine_states__</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_history</span><span class="p">()</span>
+
+        <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parsed_exp_history</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">states</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">time</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">states</span><span class="p">[</span><span class="n">state</span><span class="p">][</span><span class="n">i</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.get_temperature"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.get_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">__temp_fields__</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__temp_fields__</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&#39;field&#39; argument must be one of </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__temp_fields__</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_engine_state</span><span class="p">(</span><span class="s1">&#39;minion_</span><span class="si">{}</span><span class="s1">_temperature&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">field</span><span class="p">),</span> <span class="n">time</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_iter_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exph_fh</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse an iterator over file-like object representing</span>
+<span class="sd">        an experimental history.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">exph_fh</span><span class="p">:</span>
+            <span class="n">mo</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.*:\s+Expt time: (\d+)s:? (.*)&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mo</span><span class="p">:</span>
+                <span class="n">time</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">mo</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">rec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_line</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rec</span><span class="p">:</span>
+                    <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">rec</span>
+                    <span class="k">yield</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">key</span><span class="p">:</span><span class="n">value</span><span class="p">}</span>
+
+
+    <span class="k">def</span> <span class="nf">_parse_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if a line of experimental history records</span>
+<span class="sd">        a change in the engine state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mo</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Experimental EngineState: (.*)&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mo</span><span class="p">:</span>
+            <span class="n">msg2</span> <span class="o">=</span> <span class="n">mo</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_engine_state</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_parse_engine_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract engine state and value from a line of</span>
+<span class="sd">        experimental history.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mo</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\w+) is now (.*)&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mo</span><span class="p">:</span>
+            <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">mo</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">mo</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__engine_states__</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience method for adding attrs to a possibly new group.</span>
+<span class="sd">        :param data: dict of attrs to add</span>
+<span class="sd">        :param location: hdf path</span>
+<span class="sd">        :param convert: function to apply to all dictionary values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__add_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__add_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implementation of _add_attrs as staticmethod. This allows</span>
+<span class="sd">        functionality to be used in .New() constructor but is otherwise nasty!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">location</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_group</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">location</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">convert</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_add_numpy_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BulkFast5.New"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.New">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">New</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">tracking_id</span><span class="o">=</span><span class="p">{},</span> <span class="n">context_tags</span><span class="o">=</span><span class="p">{},</span> <span class="n">channel_id</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a fresh bulk file, with meta data written to</span>
+<span class="sd">        standard locations. There is currently no checking this meta data.</span>
+<span class="sd">        TODO: Add meta data checking.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Start a new file, populate it with meta</span>
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">h</span><span class="p">:</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="s1">&#39;file_version&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">tracking_id</span><span class="p">,</span> <span class="n">context_tags</span><span class="p">],</span>
+                <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">__tracking_path__</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__context_path__</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="c1"># see cjw&#39;s comment in fast5.py:</span>
+                <span class="c1"># &#39;no idea why these must be str, just following ossetra&#39;</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">__add_attrs</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="c1"># return instance from new file</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">read</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.set_raw"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.set_raw">[docs]</a>    <span class="k">def</span> <span class="nf">set_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the raw data in file.</span>
+
+<span class="sd">        :param raw: raw data to add</span>
+<span class="sd">        :param channel: channel number</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">req_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;digitisation&#39;</span><span class="p">,</span> <span class="s1">&#39;offset&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">req_keys</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">req_keys</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;Raw meta data must contain keys: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">req_keys</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">raw_folder</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__raw_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">raw_data_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__raw_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_attrs</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">raw_folder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">[</span><span class="n">raw_data_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.set_events"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.set_events">[docs]</a>    <span class="k">def</span> <span class="nf">set_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write event data to file</span>
+
+<span class="sd">        :param data: event data</span>
+<span class="sd">        :param meta: meta data to attach to read</span>
+<span class="sd">        :param read_number: per-channel read counter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">req_meta_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;digitisation&#39;</span><span class="p">,</span> <span class="s1">&#39;offset&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">req_meta_keys</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;Read meta does not contain required fields: </span><span class="si">{}</span><span class="s1">, got </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">req_fields</span><span class="p">,</span> <span class="n">meta</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">req_event_fields</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;variance&#39;</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Data is not ndarray.&#39;</span><span class="p">)</span>
+
+        <span class="c1"># if data contains &#39;stdv&#39;, square this to get the variance</span>
+        <span class="c1"># seemingly bulk fast5 files contain variance and not stdv, as</span>
+        <span class="c1"># taking the sqrt would be slow on minknow.</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;stdv&#39;</span><span class="p">:</span>
+                <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;variance&#39;</span>
+                <span class="n">data</span><span class="p">[</span><span class="s1">&#39;stdv&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;stdv&#39;</span><span class="p">])</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="n">names</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">req_event_fields</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;Read data does not contain required fields: </span><span class="si">{}</span><span class="s1">, got </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">req_event_fields</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">event_meta_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_meta__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_attrs</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">event_meta_path</span><span class="p">)</span>
+
+        <span class="n">uint_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;start&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span>
+            <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;uint32&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">uint_fields</span> <span class="k">else</span> <span class="n">d</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dtype_descr</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="c1"># If the data is not an int or uint we assume it is in seconds and scale</span>
+        <span class="c1"># appropriately</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">]:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+
+        <span class="n">events_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__event_data__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_numpy_table</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">),</span> <span class="n">events_path</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BulkFast5.set_voltage"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.BulkFast5.set_voltage">[docs]</a>    <span class="k">def</span> <span class="nf">set_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">meta</span><span class="p">):</span>
+        <span class="n">req_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">,</span> <span class="s1">&#39;digitisation&#39;</span><span class="p">,</span> <span class="s1">&#39;offset&#39;</span><span class="p">,</span> <span class="s1">&#39;range&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">req_keys</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">req_keys</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;Raw meta data must contain keys: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">req_keys</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_attrs</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__voltage_meta__</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="s1">&#39;bias_voltage&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_numpy_table</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__voltage_data__</span>
+
+        <span class="p">)</span></div></div>
+
+
+<span class="c1">#</span>
+<span class="c1"># Taken from minknow/asicb_command/__init__.py</span>
+<span class="c1">#</span>
+<div class="viewcode-block" id="AsicBConfiguration"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.AsicBConfiguration">[docs]</a><span class="k">class</span> <span class="nc">AsicBConfiguration</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper around the asicb configuration struct passed to the asicb over usb&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="c1"># Interpret as bytes...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;u1&quot;</span><span class="p">)</span>
+        <span class="c1"># ...with reverse bit order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unpackbits</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bias_voltage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_at</span><span class="p">(</span><span class="mi">129</span><span class="p">,</span> <span class="mi">121</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">256</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">256</span> <span class="o">-</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">val</span>
+
+
+<div class="viewcode-block" id="AsicBConfiguration.active_mux"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.AsicBConfiguration.active_mux">[docs]</a>    <span class="k">def</span> <span class="nf">active_mux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the active mux for the specified channel</span>
+<span class="sd">        :param channel: 0 based</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">first_bit_channel_0</span> <span class="o">=</span> <span class="mi">211</span>     <span class="c1"># bit of mux state for channel 0</span>
+        <span class="n">mux_state_size</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">requested_channel_first_bit</span> <span class="o">=</span> <span class="n">first_bit_channel_0</span> <span class="o">+</span> <span class="n">mux_state_size</span> <span class="o">*</span> <span class="n">channel</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_at</span><span class="p">(</span><span class="n">requested_channel_first_bit</span> <span class="o">+</span> <span class="n">mux_state_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">requested_channel_first_bit</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AsicBConfiguration.int_at"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.AsicBConfiguration.int_at">[docs]</a>    <span class="k">def</span> <span class="nf">int_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">bits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bits_at</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">on</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">bits</span><span class="p">):</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="n">num</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">on</span><span class="p">:</span>
+                <span class="n">num</span> <span class="o">|=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">num</span></div>
+
+
+<div class="viewcode-block" id="AsicBConfiguration.bits_at"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.AsicBConfiguration.bits_at">[docs]</a>    <span class="k">def</span> <span class="nf">bits_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">[</span><span class="n">end</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="AsicBCommand"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.fast5_bulk.AsicBCommand">[docs]</a><span class="k">class</span> <span class="nc">AsicBCommand</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper around the asicb command structure&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span> <span class="o">=</span> <span class="n">AsicBConfiguration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">:])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;u1&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">17</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid command - magic byte was &#39;</span><span class="si">{}</span><span class="s2">&#39;, expected &#39;17&#39;&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">min_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bytes</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">min_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bytes</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configuration</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

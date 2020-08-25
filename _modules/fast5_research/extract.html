@@ -1,0 +1,883 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fast5_research.extract &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Fast5 Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cmdline.html">Command line Programs</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fast5_research.html">fast5_research package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fast5_research.extract</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fast5_research.extract</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">tee</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">now</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">pysam</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+
+<span class="kn">from</span> <span class="nn">fast5_research.fast5</span> <span class="kn">import</span> <span class="n">Fast5</span><span class="p">,</span> <span class="n">iterate_fast5</span>
+<span class="kn">from</span> <span class="nn">fast5_research.fast5_bulk</span> <span class="kn">import</span> <span class="n">BulkFast5</span>
+<span class="kn">from</span> <span class="nn">fast5_research.util</span> <span class="kn">import</span> <span class="n">_sanitize_data_for_writing</span><span class="p">,</span> <span class="n">readtsv</span><span class="p">,</span> <span class="n">group_vector</span>
+
+<div class="viewcode-block" id="triplewise"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.triplewise">[docs]</a><span class="k">def</span> <span class="nf">triplewise</span><span class="p">(</span><span class="n">iterable</span><span class="p">):</span>
+    <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">tee</span><span class="p">(</span><span class="n">iterable</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="nb">next</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">yield from</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="extract_read_summary"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.extract_read_summary">[docs]</a><span class="k">def</span> <span class="nf">extract_read_summary</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Summarize Reads&#39;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Summarize reads stored in a Bulk .fast5&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Bulk .fast5 file for input.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output text file.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--channel_range&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Channel range (inclusive).&#39;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">channel_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">BulkFast5</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
+            <span class="n">channels</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">channels</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="o">.</span><span class="n">channel_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">BulkFast5</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_fh</span><span class="p">:</span>
+        <span class="n">extract_read_summary_internal</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">out_fh</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_read_summary_internal"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.extract_read_summary_internal">[docs]</a><span class="k">def</span> <span class="nf">extract_read_summary_internal</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">out_fh</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;run&#39;</span><span class="p">,</span> <span class="s1">&#39;channel&#39;</span><span class="p">,</span> <span class="s1">&#39;mux&#39;</span><span class="p">,</span> <span class="s1">&#39;read_id&#39;</span><span class="p">,</span> <span class="s1">&#39;classification&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;duration&#39;</span><span class="p">,</span> <span class="s1">&#39;time_since_strand&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;start_event&#39;</span><span class="p">,</span> <span class="s1">&#39;end_event&#39;</span><span class="p">,</span> <span class="s1">&#39;num_events&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;median_current&#39;</span><span class="p">,</span> <span class="s1">&#39;median_current_before&#39;</span><span class="p">,</span> <span class="s1">&#39;median_current_after&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;drift&#39;</span><span class="p">,</span> <span class="s1">&#39;median_sd&#39;</span><span class="p">,</span> <span class="s1">&#39;range_current&#39;</span><span class="p">,</span> <span class="s1">&#39;median_dwell&#39;</span>
+    <span class="p">]</span>
+    <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fields</span><span class="p">))</span>
+    <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">sample_rate</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">sample_rate</span>
+    <span class="n">run_id</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_tracking_meta</span><span class="p">()[</span><span class="s1">&#39;run_id&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">chan</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chan</span><span class="p">))</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">reads</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_reads</span><span class="p">(</span><span class="n">chan</span><span class="p">)</span>
+        <span class="n">last_strand</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># this drops the first and last read</span>
+        <span class="k">for</span> <span class="n">before</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">after</span> <span class="ow">in</span> <span class="n">triplewise</span><span class="p">(</span><span class="n">reads</span><span class="p">):</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_id</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">chan</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;mux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_mux</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">raw_index</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;read_start&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;read_length&#39;</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;median_current&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;median_current_before&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">before</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;median_current_after&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">after</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;num_events&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;event_index_end&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;event_index_start&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;read_start&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">sample_rate</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;duration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;read_length&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">sample_rate</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start_event&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;event_index_start&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;end_event&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;event_index_end&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;range_current&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;median_dwell&#39;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">sample_rate</span>
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;time_since_strand&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">last_strand</span>
+            <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">f</span><span class="p">])</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">))</span>
+            <span class="n">out_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;classification&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;strand&#39;</span><span class="p">:</span>
+                <span class="n">last_strand</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;duration&#39;</span><span class="p">]</span>
+            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> reads in channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">chan</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="extract_reads"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.extract_reads">[docs]</a><span class="k">def</span> <span class="nf">extract_reads</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Extract Reads&#39;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Bulk .fast5 to read .fast5 conversion.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Bulk .fast5 file for input.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output folder.&#39;</span><span class="p">)</span>
+    <span class="n">out_format</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">()</span>
+    <span class="n">out_format</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--multi&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output multi-read files.&#39;</span><span class="p">)</span>
+    <span class="n">out_format</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--single&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;multi&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output single-read files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--flat&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Create all .fast5 files in one directory&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--by_id&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name single-read .fast5 files by read_id.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--prefix&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Read file prefix.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--channel_range&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Channel range (inclusive).&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--summary&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Strand summary file containing at least columns channel, start_time and duration).&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--workers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of worker processes.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--limit&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Limit reads per channel.&#39;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;The output directory must not exist.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">summary</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;The summary file does not exist.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># load summary</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">summary</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">worker</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">extract_channel_reads</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">by_id</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">limit</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">multi</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">channel_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">BulkFast5</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
+            <span class="n">channels</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">channels</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="o">.</span><span class="n">channel_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># only process channels in the summary</span>
+        <span class="n">summ_channels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">])</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span> <span class="k">if</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">summ_channels</span><span class="p">]</span>
+        <span class="n">summary_by_ch</span> <span class="o">=</span> <span class="p">{</span><span class="n">ch</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">summary</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;channel&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ch</span><span class="p">)]</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">summary_by_ch</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">worker</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="n">summary_by_ch</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">n_reads</span><span class="p">,</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error processing channel.&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracted </span><span class="si">{}</span><span class="s2"> reads from channel </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_reads</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">channels</span><span class="p">:</span>
+            <span class="n">worker</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="n">summary_by_ch</span><span class="p">[</span><span class="n">channel</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finished.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="time_cast"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.time_cast">[docs]</a><span class="k">def</span> <span class="nf">time_cast</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a float time to sample index, or return time unmodified</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span> <span class="o">*</span> <span class="n">sample_rate</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">time</span></div>
+
+
+<div class="viewcode-block" id="extract_channel_reads"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.extract_channel_reads">[docs]</a><span class="k">def</span> <span class="nf">extract_channel_reads</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">flat</span><span class="p">,</span> <span class="n">by_id</span><span class="p">,</span> <span class="n">max_files</span><span class="p">,</span> <span class="n">multi</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">summary</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">flat</span><span class="p">:</span>
+        <span class="n">out_path</span> <span class="o">=</span> <span class="n">output</span>
+        <span class="c1"># give multi files a channel prefix else they will</span>
+        <span class="c1"># conflict between channels. Singles already get</span>
+        <span class="c1"># a &quot;ch&quot; component in their name</span>
+        <span class="k">if</span> <span class="n">multi</span><span class="p">:</span>
+            <span class="n">extra</span> <span class="o">=</span> <span class="s1">&#39;ch</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">prefix</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="n">extra</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">extra</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">BulkFast5</span><span class="p">(</span><span class="n">source</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="n">tracking_id</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_tracking_meta</span><span class="p">()</span>
+        <span class="n">context_tags</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_context_meta</span><span class="p">()</span>
+        <span class="n">channel_id</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;channel_number&#39;</span><span class="p">:</span> <span class="n">channel</span><span class="p">,</span>
+            <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;range&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;digitisation&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;digitisation&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;offset&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;offset&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">Writer</span> <span class="o">=</span> <span class="n">MultiWriter</span> <span class="k">if</span> <span class="n">multi</span> <span class="k">else</span> <span class="n">SingleWriter</span>
+        <span class="k">with</span> <span class="n">Writer</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">by_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+
+            <span class="n">median_before</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">raw_data</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_raw</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">use_scaling</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># convert array into stream of dicts</span>
+                <span class="n">reads</span> <span class="o">=</span> <span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">}</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">)</span>
+                <span class="n">class_field</span> <span class="o">=</span> <span class="s1">&#39;class&#39;</span>
+                <span class="n">start_field</span> <span class="o">=</span> <span class="s1">&#39;start_time&#39;</span>
+                <span class="n">duration_field</span> <span class="o">=</span> <span class="s1">&#39;duration&#39;</span>
+                <span class="c1"># if start_time is a float (seconds) we need to convert to</span>
+                <span class="c1"># samples</span>
+                <span class="n">time_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="s1">&#39;duration&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reads</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">get_reads</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+                <span class="n">class_field</span> <span class="o">=</span> <span class="s1">&#39;classification&#39;</span>
+                <span class="n">start_field</span> <span class="o">=</span> <span class="s1">&#39;read_start&#39;</span>
+                <span class="n">duration_field</span> <span class="o">=</span> <span class="s1">&#39;read_length&#39;</span>
+
+            <span class="k">for</span> <span class="n">read_number</span><span class="p">,</span> <span class="n">read</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reads</span><span class="p">):</span>
+
+                <span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;median_current_before&#39;</span> <span class="ow">in</span> <span class="n">read</span><span class="p">:</span>
+                        <span class="n">median_before</span> <span class="o">=</span> <span class="n">read</span><span class="p">[</span><span class="s1">&#39;median_current_before&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">median_before</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">elif</span> <span class="n">median_before</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">median_before</span> <span class="o">=</span> <span class="n">read</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">summary</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">read</span><span class="p">[</span><span class="n">class_field</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;strand&#39;</span><span class="p">:</span>
+                    <span class="n">median_before</span> <span class="o">=</span> <span class="n">read</span><span class="p">[</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">time_cast</span><span class="p">(</span><span class="n">read</span><span class="p">[</span><span class="n">start_field</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">])</span>
+                    <span class="n">length</span> <span class="o">=</span> <span class="n">time_cast</span><span class="p">(</span><span class="n">read</span><span class="p">[</span><span class="n">duration_field</span><span class="p">],</span> <span class="n">meta</span><span class="p">[</span><span class="s1">&#39;sample_rate&#39;</span><span class="p">])</span>
+                    <span class="n">read_id</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;start_time&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span>
+                        <span class="s1">&#39;duration&#39;</span><span class="p">:</span> <span class="n">length</span><span class="p">,</span>
+                        <span class="s1">&#39;read_number&#39;</span><span class="p">:</span> <span class="n">read_number</span><span class="p">,</span>
+                        <span class="s1">&#39;start_mux&#39;</span><span class="p">:</span> <span class="n">src</span><span class="o">.</span><span class="n">get_mux</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">raw_index</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">wells_only</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                        <span class="s1">&#39;read_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">read</span><span class="p">[</span><span class="s1">&#39;read_id&#39;</span><span class="p">])</span> <span class="k">if</span> <span class="s1">&#39;read_id&#39;</span> <span class="ow">in</span> <span class="n">read</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()),</span>
+                        <span class="s1">&#39;scaling_used&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s1">&#39;median_before&#39;</span><span class="p">:</span> <span class="n">median_before</span>
+                    <span class="p">}</span>
+
+                    <span class="n">raw_slice</span> <span class="o">=</span> <span class="n">raw_data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">length</span><span class="p">]</span>
+                    <span class="n">read</span> <span class="o">=</span> <span class="n">Read</span><span class="p">(</span><span class="n">read_id</span><span class="p">,</span> <span class="n">read_number</span><span class="p">,</span> <span class="n">tracking_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">context_tags</span><span class="p">,</span> <span class="n">raw_slice</span><span class="p">)</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">write_read</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="n">max_files</span><span class="p">:</span>
+                        <span class="k">break</span>
+    <span class="k">return</span> <span class="n">counter</span><span class="p">,</span> <span class="n">channel</span></div>
+
+
+<div class="viewcode-block" id="build_read_index"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.build_read_index">[docs]</a><span class="k">def</span> <span class="nf">build_read_index</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Index Reads&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Build index of reads within .fast5s. Output to stdout.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;.fast5 directory&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--recursive&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Search recursively under `input` for source files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--workers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of worker processes.&#39;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">src_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterate_fast5</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">recursive</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> files.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_files</span><span class="p">)))</span>
+
+    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+         <span class="n">n_reads</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">read_ids</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                 <span class="nb">zip</span><span class="p">(</span><span class="n">src_files</span><span class="p">,</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">reads_in_multi</span><span class="p">,</span> <span class="n">src_files</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">10</span><span class="p">))):</span>
+             <span class="n">n_reads</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)</span>
+             <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">read_ids</span><span class="p">:</span>
+                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">read</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">src</span><span class="p">))))</span>
+             <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Indexed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> files. </span><span class="si">{}</span><span class="s2"> reads&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_files</span><span class="p">),</span> <span class="n">n_reads</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="filter_file_from_bam"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.filter_file_from_bam">[docs]</a><span class="k">def</span> <span class="nf">filter_file_from_bam</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Filter&#39;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Create filter file from BAM and sequencing summary&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--seperator&#39;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;SEP&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Seperator in sequencing summary files&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--id-col&#39;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;READID_COL&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;read_id&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Column name for read_id in sequencing summary files&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--fname-col&#39;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;FNAME_COL&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Column name for fast5 filename in sequencing summary files&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s1">&#39;--region&#39;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;REGION&quot;</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Print reads only from this region&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--workers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of worker processes.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--primary-only&#39;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;PRIMARY&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Ignore secondary and supplementary alignments&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;BAM&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to BAM file&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;SUMMARY&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sequencing summary files&quot;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">region</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">REGION</span>
+    <span class="n">primary_only</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">PRIMARY</span>
+    <span class="n">bam_in</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">BAM</span>
+    <span class="n">summary_files</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">SUMMARY</span>
+    <span class="n">threads</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">workers</span>
+    <span class="n">readid_col</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">READID_COL</span>
+    <span class="n">fast5_col</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">FNAME_COL</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">SEP</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">region</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No region specified. Extracting all reads from BAM file&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting read ids from </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">region</span><span class="p">))</span>
+
+    <span class="n">read_ids</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="n">pysam</span><span class="o">.</span><span class="n">AlignmentFile</span><span class="p">(</span><span class="n">bam_in</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="n">threads</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">read</span> <span class="ow">in</span> <span class="n">infile</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">is_unmapped</span> <span class="ow">or</span> <span class="p">(</span><span class="n">primary_only</span> <span class="ow">and</span> <span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">is_secondary</span> <span class="ow">or</span> <span class="n">read</span><span class="o">.</span><span class="n">is_supplementary</span><span class="p">)):</span>
+                <span class="k">continue</span>
+            <span class="n">read_ids</span><span class="p">[</span><span class="n">read</span><span class="o">.</span><span class="n">query_name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reads found in BAM file: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Print header</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;read_id&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">n_print</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">summary_file</span> <span class="ow">in</span> <span class="n">summary_files</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Opening: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">summary_file</span><span class="p">))</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">summary_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">header_cols</span> <span class="o">=</span> <span class="n">header</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">readid_idx</span> <span class="o">=</span> <span class="n">header_cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">readid_col</span><span class="p">)</span>
+            <span class="n">path_idx</span> <span class="o">=</span> <span class="n">header_cols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">fast5_col</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">cols</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
+                <span class="n">readid</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">readid_idx</span><span class="p">]</span>
+                <span class="n">f5_path</span> <span class="o">=</span> <span class="n">cols</span><span class="p">[</span><span class="n">path_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">readid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">read_ids</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">read_ids</span><span class="p">[</span><span class="n">readid</span><span class="p">]:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Two entries found for </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2"> and </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">readid</span><span class="p">,</span> <span class="n">read_ids</span><span class="p">[</span><span class="n">readid</span><span class="p">],</span> <span class="n">f5_path</span><span class="p">))</span>
+                    <span class="k">continue</span>
+
+                <span class="n">n_print</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">read_ids</span><span class="p">[</span><span class="n">readid</span><span class="p">]</span> <span class="o">=</span> <span class="n">f5_path</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">readid</span><span class="p">,</span> <span class="n">read_ids</span><span class="p">[</span><span class="n">readid</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Filename found for </span><span class="si">{}</span><span class="s2"> reads (</span><span class="si">{}</span><span class="s2">%)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_print</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">n_print</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">/</span> <span class="n">n</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="filter_multi_reads"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.filter_multi_reads">[docs]</a><span class="k">def</span> <span class="nf">filter_multi_reads</span><span class="p">():</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1">] </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s1">&#39;%H:%M:%S&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span>
+    <span class="p">)</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Filter&#39;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Extract reads from multi-read .fast5 files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to input multi-read .fast5 files (or list of files).&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;output&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output folder.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A .tsv file with column `read_id` defining required reads. &#39;</span>
+             <span class="s1">&#39;If a `filename` column is present, this will be used as the &#39;</span>
+             <span class="s1">&#39;location of the read.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--tsv_field&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;read_id&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Field name from `filter` file to obtain read IDs.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--prefix&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Read file prefix.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--recursive&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Search recursively under `input` for source files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--workers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of worker processes.&#39;</span><span class="p">)</span>
+
+    <span class="n">out_format</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">()</span>
+    <span class="n">out_format</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--multi&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output multi-read files.&#39;</span><span class="p">)</span>
+    <span class="n">out_format</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--single&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;multi&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output single-read files.&#39;</span><span class="p">)</span>
+
+    <span class="c1">#parser.add_argument(&#39;--limit&#39;, type=int, default=None, help=&#39;Limit reads per channel.&#39;)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">multi</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Extraction of reads to single read files is on the TODO list.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;The output directory must not exist.&#39;</span><span class="p">)</span>
+
+    <span class="c1"># grab list of source files</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Searching for input files.&quot;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">src_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">readtsv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">)[</span><span class="s1">&#39;filename&#39;</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Failed to read `input` as filelist, assuming path to search. </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="n">src_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterate_fast5</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">recursive</span><span class="p">))</span>
+    <span class="n">n_files</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_files</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> source files.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_files</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reading filter file.&quot;</span><span class="p">)</span>
+    <span class="n">read_table</span> <span class="o">=</span> <span class="n">readtsv</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">filter</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">tsv_field</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> reads in filter.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">read_table</span><span class="p">)))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># try to build index from the filter file with &#39;filename&#39; column</span>
+        <span class="k">if</span> <span class="s1">&#39;filename&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">read_table</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;filename&#39; column not present in filter.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to build read index from input filter.&quot;</span><span class="p">)</span>
+        <span class="n">src_path_files</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">x</span><span class="p">):</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">src_files</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_path_files</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">src_files</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Found non-uniquely named source files&#39;</span><span class="p">)</span>
+        <span class="n">read_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">indices</span> <span class="ow">in</span> <span class="n">group_vector</span><span class="p">(</span><span class="n">read_table</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="n">src_path_files</span><span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fname</span><span class="p">)]</span>
+            <span class="n">read_index</span><span class="p">[</span><span class="n">fpath</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_table</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">tsv_field</span><span class="p">][</span><span class="n">indices</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully build read index from input filter.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to build read index from summary: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="n">read_index</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">required_reads</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">read_table</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">tsv_field</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finding reads within </span><span class="si">{}</span><span class="s2"> source files.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_files</span><span class="p">))</span>
+        <span class="n">index_worker</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">reads_in_multi</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="n">required_reads</span><span class="p">)</span>
+        <span class="n">read_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">n_reads</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">src_file</span><span class="p">,</span> <span class="n">read_ids</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">src_files</span><span class="p">,</span> <span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">index_worker</span><span class="p">,</span> <span class="n">src_files</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">10</span><span class="p">)):</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">n_reads</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)</span>
+                <span class="n">read_index</span><span class="p">[</span><span class="n">src_file</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_ids</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Indexed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> files. </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> reads&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n_files</span><span class="p">,</span> <span class="n">n_reads</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">required_reads</span><span class="p">)))</span>
+
+    <span class="n">n_reads</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">read_index</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="c1"># We don&#39;t go via creating Read objects, copying the data verbatim</span>
+    <span class="c1"># likely quicker and nothing should need the verification that the APIs</span>
+    <span class="c1"># provide (garbage in, garbage out).</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Extracting </span><span class="si">{}</span><span class="s2"> reads.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_reads</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">prefix</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+        <span class="n">reads_per_process</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">n_reads</span> <span class="o">/</span> <span class="n">args</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span>
+        <span class="n">proc_n_reads</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">proc_reads</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">futures</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">read_index</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">proc_reads</span><span class="p">[</span><span class="n">src</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_index</span><span class="p">[</span><span class="n">src</span><span class="p">]</span>
+            <span class="n">proc_n_reads</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">proc_reads</span><span class="p">[</span><span class="n">src</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">proc_n_reads</span> <span class="o">&gt;</span> <span class="n">reads_per_process</span><span class="p">:</span>
+                <span class="n">proc_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
+                <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_subset_reads_to_file</span><span class="p">,</span> <span class="n">proc_reads</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">proc_prefix</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+                <span class="n">job</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">proc_n_reads</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">proc_reads</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">proc_n_reads</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># processing remaining reads</span>
+            <span class="n">proc_prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
+            <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_subset_reads_to_file</span><span class="p">,</span> <span class="n">proc_reads</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">proc_prefix</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="n">job</span><span class="p">))</span>
+
+
+        <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">reads_written</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Written </span><span class="si">{}</span><span class="s2"> reads to </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">reads_written</span><span class="p">,</span> <span class="n">prefix</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Error: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_subset_reads_to_file</span><span class="p">(</span><span class="n">read_index</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Worker-</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">worker_id</span><span class="p">))</span>
+    <span class="n">n_reads</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">read_index</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">reads_written</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">now</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">MultiWriter</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">src_file</span><span class="p">,</span> <span class="n">read_ids</span> <span class="ow">in</span> <span class="n">read_index</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">reads_written</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)</span>
+            <span class="n">t1</span> <span class="o">=</span> <span class="n">now</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span> <span class="c1"># log update every 30 seconds</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Written </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> reads (</span><span class="si">{:.0f}% d</span><span class="s2">one)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">reads_written</span><span class="p">,</span> <span class="n">n_reads</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">reads_written</span> <span class="o">/</span> <span class="n">n_reads</span>
+                <span class="p">))</span>
+                <span class="n">t0</span> <span class="o">=</span> <span class="n">t1</span>
+            <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">src_fh</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">read_id</span> <span class="ow">in</span> <span class="n">read_ids</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">read_grp</span> <span class="o">=</span> <span class="n">src_fh</span><span class="p">[</span><span class="s2">&quot;read_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_id</span><span class="p">)]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Did not find </span><span class="si">{}</span><span class="s2"> in </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_id</span><span class="p">,</span> <span class="n">src_fh</span><span class="o">.</span><span class="n">filename</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">writer</span><span class="o">.</span><span class="n">write_read</span><span class="p">(</span><span class="n">read_grp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">reads_written</span><span class="p">,</span> <span class="n">prefix</span>
+
+
+<div class="viewcode-block" id="reads_in_multi"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.reads_in_multi">[docs]</a><span class="k">def</span> <span class="nf">reads_in_multi</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get list of read IDs contained within a multi-read file.</span>
+
+<span class="sd">    :param src: source file.</span>
+<span class="sd">    :param filt: perform filtering by given set.</span>
+<span class="sd">    :returns: set of read UUIDs (as string and recorded in hdf group name).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Finding reads.&quot;</span><span class="p">)</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s1">&#39;read_&#39;</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">read_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">grp</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">):]</span> <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">fh</span> <span class="k">if</span> <span class="n">grp</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found </span><span class="si">{}</span><span class="s2"> reads.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">filt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">read_ids</span> <span class="o">=</span> <span class="n">read_ids</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Filtered to </span><span class="si">{}</span><span class="s2"> reads.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">read_ids</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">read_ids</span></div>
+
+
+<div class="viewcode-block" id="Read"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.Read">[docs]</a><span class="k">class</span> <span class="nc">Read</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># Just a sketch to help interchange of format</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_id</span><span class="p">,</span> <span class="n">read_number</span><span class="p">,</span> <span class="n">tracking_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">context_tags</span><span class="p">,</span> <span class="n">raw</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_id</span> <span class="o">=</span> <span class="n">read_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_number</span> <span class="o">=</span> <span class="n">read_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracking_id</span> <span class="o">=</span> <span class="n">tracking_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">context_tags</span> <span class="o">=</span> <span class="n">context_tags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">raw</span>
+
+        <span class="c1"># ensure typing and required fields</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">channel_id</span> <span class="o">=</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">convert_channel_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tracking_id</span> <span class="o">=</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">convert_tracking_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tracking_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReadWriter"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.ReadWriter">[docs]</a><span class="k">class</span> <span class="nc">ReadWriter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">by_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_path</span> <span class="o">=</span> <span class="n">out_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">by_id</span> <span class="o">=</span> <span class="n">by_id</span>
+        <span class="k">if</span> <span class="n">prefix</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+
+<div class="viewcode-block" id="ReadWriter.write_read"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.ReadWriter.write_read">[docs]</a>    <span class="k">def</span> <span class="nf">write_read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception_type</span><span class="p">,</span> <span class="n">exception_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SingleWriter"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.SingleWriter">[docs]</a><span class="k">class</span> <span class="nc">SingleWriter</span><span class="p">(</span><span class="n">ReadWriter</span><span class="p">):</span>
+<div class="viewcode-block" id="SingleWriter.write_read"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.SingleWriter.write_read">[docs]</a>    <span class="k">def</span> <span class="nf">write_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_id</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.fast5&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">read_id</span><span class="p">[</span><span class="s1">&#39;read_id&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">read_ch</span><span class="si">{}</span><span class="s1">_file</span><span class="si">{}</span><span class="s1">.fast5&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">channel_id</span><span class="p">[</span><span class="s1">&#39;channel_number&#39;</span><span class="p">],</span> <span class="n">read</span><span class="o">.</span><span class="n">read_number</span>
+            <span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">tracking_id</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">tracking_id</span><span class="p">,</span> <span class="n">context_tags</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">context_tags</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">channel_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">h</span><span class="p">:</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">set_raw</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">raw</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">read_id</span><span class="p">,</span> <span class="n">read_number</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">read_number</span><span class="p">)</span></div></div>
+
+
+<span class="n">MULTI_READ_FILE_VERSION</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+
+<div class="viewcode-block" id="MultiWriter"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.MultiWriter">[docs]</a><span class="k">class</span> <span class="nc">MultiWriter</span><span class="p">(</span><span class="n">ReadWriter</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_path</span><span class="p">,</span> <span class="n">by_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">reads_per_file</span><span class="o">=</span><span class="mi">4000</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MultiWriter</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="n">by_id</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reads_per_file</span> <span class="o">=</span> <span class="n">reads_per_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_reads</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># reads in open file, used to signal new file condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closed</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exception_type</span><span class="p">,</span> <span class="n">exception_value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="MultiWriter.close"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.MultiWriter.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MultiWriter.write_read"><a class="viewcode-back" href="../../fast5_research.html#fast5_research.extract.MultiWriter.write_read">[docs]</a>    <span class="k">def</span> <span class="nf">write_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write a read.</span>
+
+<span class="sd">        :param read: either a `Read` object or an hdf group handle from a</span>
+<span class="sd">            source multi-read file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Cannot write after closed.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_reads</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># start a new file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">mreads_file</span><span class="si">{}</span><span class="s1">.fast5&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_counter</span>
+            <span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">out_path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="s1">&#39;file_version&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">_sanitize_data_for_writing</span><span class="p">(</span><span class="s2">&quot;2.0&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># write data</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">Read</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_read</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_read_group</span><span class="p">(</span><span class="n">read</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Cannot write type </span><span class="si">{}</span><span class="s2"> to output file.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_reads</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># update</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_reads</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">reads_per_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_reads</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_write_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">read</span><span class="o">.</span><span class="n">raw</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Raw data must be of type int16.&#39;</span><span class="p">)</span>
+
+        <span class="n">read_group</span> <span class="o">=</span> <span class="s1">&#39;/read_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">read_id</span><span class="p">[</span><span class="s1">&#39;read_id&#39;</span><span class="p">])</span>
+        <span class="n">Fast5</span><span class="o">.</span><span class="n">_add_attrs_to_fh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;run_id&#39;</span><span class="p">:</span> <span class="n">read</span><span class="o">.</span><span class="n">tracking_id</span><span class="p">[</span><span class="s1">&#39;run_id&#39;</span><span class="p">]},</span> <span class="n">read_group</span><span class="p">,</span> <span class="n">convert</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="c1"># add all attributes</span>
+        <span class="k">for</span> <span class="n">grp_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;tracking_id&#39;</span><span class="p">,</span> <span class="s1">&#39;context_tags&#39;</span><span class="p">):</span>
+            <span class="c1"># spec has all of these as str</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">grp_name</span><span class="p">)</span>
+            <span class="n">Fast5</span><span class="o">.</span><span class="n">_add_attrs_to_fh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_group</span><span class="p">,</span> <span class="n">grp_name</span><span class="p">),</span> <span class="n">convert</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">Fast5</span><span class="o">.</span><span class="n">_add_attrs_to_fh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">channel_id</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/channel_id&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_group</span><span class="p">))</span>
+
+        <span class="c1"># add the data (and some more attrs)</span>
+        <span class="n">data_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/Raw&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">read_group</span><span class="p">)</span>
+        <span class="n">read_id</span> <span class="o">=</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">_convert_meta_times</span><span class="p">(</span><span class="n">read</span><span class="o">.</span><span class="n">read_id</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">channel_id</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
+        <span class="n">read_id</span> <span class="o">=</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">convert_raw_meta</span><span class="p">(</span><span class="n">read_id</span><span class="p">)</span>
+        <span class="n">Fast5</span><span class="o">.</span><span class="n">_add_attrs_to_fh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="p">,</span> <span class="n">read_id</span><span class="p">,</span> <span class="n">data_path</span><span class="p">)</span>
+        <span class="n">signal_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/Signal&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+            <span class="n">signal_path</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">read</span><span class="o">.</span><span class="n">raw</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s1">&#39;gzip&#39;</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;i2&#39;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_copy_read_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_file</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">read</span><span class="p">,</span> <span class="n">read</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Fast5 Examples &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line Programs" href="cmdline.html" />
+    <link rel="prev" title="Welcome to Fast5’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fast5 Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#read-files">Read Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bulk-files">Bulk Files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cmdline.html">Command line Programs</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fast5_research.html">fast5_research package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Fast5 Examples</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fast5-examples">
+<h1>Fast5 Examples<a class="headerlink" href="#fast5-examples" title="Permalink to this headline">¶</a></h1>
+<p>The following code snippets demonstrate basic IO using key features of the API.</p>
+<div class="section" id="read-files">
+<h2>Read Files<a class="headerlink" href="#read-files" title="Permalink to this headline">¶</a></h2>
+<p>The library provides the <cite>Fast5</cite> class which extends <cite>h5py.File</cite> with methods
+for acquiring common datasets and attributes from files without requiring
+knowledge of the file structure. To read a file and obtain a useful summary:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fast5_research</span> <span class="kn">import</span> <span class="n">Fast5</span>
+
+<span class="n">filename</span><span class="o">=</span><span class="s1">&#39;my.fast5&#39;</span>
+
+<span class="k">with</span> <span class="n">Fast5</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_read</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Raw is </span><span class="si">{}</span><span class="s1"> samples long.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Summary </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">summary</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note that in this example the raw data will be provided in pA s.</p>
+<p>The library also allows writing of files which are conformant with Oxford
+Nanopore Technologies’ software. Certain meta data are needed, which the
+library will enforce are present:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">fast5_research</span> <span class="kn">import</span> <span class="n">Fast5</span>
+
+<span class="n">filename</span><span class="o">=</span><span class="s1">&#39;my_new.fast5&#39;</span>
+<span class="n">mean</span><span class="p">,</span> <span class="n">stdv</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mf">40.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mi">10000</span>
+<span class="n">raw_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">laplace</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">stdv</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">dwell</span><span class="p">))</span>
+
+<span class="c1"># example of how to digitize data</span>
+<span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">raw_data</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">raw_data</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">stop</span> <span class="o">-</span> <span class="n">start</span>
+<span class="n">digitisation</span> <span class="o">=</span> <span class="mf">8192.0</span>
+<span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">rng</span> <span class="o">/</span> <span class="n">digitisation</span><span class="p">)</span>
+<span class="c1"># np.int16 is required, the library will refuse to write anything other</span>
+<span class="n">raw_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">bins</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+
+<span class="c1"># The following are required meta data</span>
+<span class="n">channel_id</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;digitisation&#39;</span><span class="p">:</span> <span class="n">digitisation</span><span class="p">,</span>
+    <span class="s1">&#39;offset&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;range&#39;</span><span class="p">:</span> <span class="n">rng</span><span class="p">,</span>
+    <span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="mi">4000</span><span class="p">,</span>
+    <span class="s1">&#39;channel_number&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="n">read_id</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;start_time&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;duration&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_data</span><span class="p">),</span>
+    <span class="s1">&#39;read_number&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;start_mux&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;read_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">()),</span>
+    <span class="s1">&#39;scaling_used&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;median_before&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">tracking_id</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;exp_start_time&#39;</span><span class="p">:</span> <span class="s1">&#39;1970-01-01T00:00:00Z&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;run_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;flow_cell_id&#39;</span><span class="p">:</span> <span class="s1">&#39;FAH00000&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">context_tags</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">with</span> <span class="n">Fast5</span><span class="o">.</span><span class="n">New</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">tracking_id</span><span class="o">=</span><span class="n">tracking_id</span><span class="p">,</span> <span class="n">context_tags</span><span class="o">=</span><span class="n">context_tags</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span> <span class="k">as</span> <span class="n">h</span><span class="p">:</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">set_raw</span><span class="p">(</span><span class="n">raw_data</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">read_id</span><span class="p">,</span> <span class="n">read_number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="bulk-files">
+<h2>Bulk Files<a class="headerlink" href="#bulk-files" title="Permalink to this headline">¶</a></h2>
+<p>The library exposes data within bulk <cite>.fast5</cite> files through the <cite>BulkFast5</cite> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fast5_research</span> <span class="kn">import</span> <span class="n">BulkFast5</span>
+
+<span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;my_bulk.fast5&#39;</span>
+<span class="n">channel</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">100000</span><span class="p">]</span>
+
+<span class="k">with</span> <span class="n">BulkFast5</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">get_raw</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
+    <span class="n">multiplexer_changes</span> <span class="o">=</span> <span class="n">get_mux_changes_in_window</span><span class="p">(</span>
+        <span class="n">channel</span><span class="p">,</span> <span class="n">raw_indices</span><span class="o">=</span><span class="n">samples</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <cite>BulkFast5</cite> class provides in-memory caching of many intermediate results,
+to optimize repeated calls to the same methods.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cmdline.html" class="btn btn-neutral float-right" title="Command line Programs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Fast5’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

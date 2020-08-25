@@ -1,0 +1,7 @@
+fast5_research
+==============
+
+.. toctree::
+   :maxdepth: 4
+
+   fast5_research

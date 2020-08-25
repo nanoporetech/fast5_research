@@ -1,0 +1,45 @@
+fast5\_research package
+=======================
+
+Submodules
+----------
+
+fast5\_research.extract module
+------------------------------
+
+.. automodule:: fast5_research.extract
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fast5\_research.fast5 module
+----------------------------
+
+.. automodule:: fast5_research.fast5
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fast5\_research.fast5\_bulk module
+----------------------------------
+
+.. automodule:: fast5_research.fast5_bulk
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+fast5\_research.util module
+---------------------------
+
+.. automodule:: fast5_research.util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: fast5_research
+   :members:
+   :undoc-members:
+   :show-inheritance:

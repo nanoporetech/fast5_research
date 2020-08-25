@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Command line Programs &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fast5_research package" href="fast5_research.html" />
+    <link rel="prev" title="Fast5 Examples" href="examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Fast5 Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command line Programs</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fast5_research.html">fast5_research package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Command line Programs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cmdline.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="command-line-programs">
+<h1>Command line Programs<a class="headerlink" href="#command-line-programs" title="Permalink to this headline">¶</a></h1>
+<p><cite>fast5_research</cite> comes with two commandline programs for conversion of sequencing
+read data.</p>
+<p><strong>extract_reads</strong> - extracts reads from a bulk <code class="docutils literal notranslate"><span class="pre">.fast5</span></code> to either single- or multi-read
+<code class="docutils literal notranslate"><span class="pre">.fast5</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: extract_reads <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>--multi <span class="p">|</span> --single<span class="o">]</span> <span class="o">[</span>--flat<span class="o">]</span> <span class="o">[</span>--by_id<span class="o">]</span>
+                     <span class="o">[</span>--prefix PREFIX<span class="o">]</span>
+                     <span class="o">[</span>--channel_range CHANNEL_RANGE CHANNEL_RANGE<span class="o">]</span>
+                     <span class="o">[</span>--workers WORKERS<span class="o">]</span> <span class="o">[</span>--limit LIMIT<span class="o">]</span>
+                     input output
+
+Bulk .fast5 to <span class="nb">read</span> .fast5 conversion.
+
+positional arguments:
+  input                 Bulk .fast5 file <span class="k">for</span> input.
+  output                Output folder.
+
+optional arguments:
+  -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+  --multi               Output multi-read files.
+  --single              Output single-read files.
+  --flat                Create all .fast5 files in one directory
+  --by_id               Name single-read .fast5 files by read_id.
+  --prefix PREFIX       Read file prefix.
+  --channel_range CHANNEL_RANGE CHANNEL_RANGE
+                        Channel range <span class="o">(</span>inclusive<span class="o">)</span>.
+  --workers WORKERS     Number of worker processes.
+  --limit LIMIT         Limit reads per channel.
+</pre></div>
+</div>
+<p><strong>filter_reads</strong> - extracts a subset of reads from a set of multi-read <code class="docutils literal notranslate"><span class="pre">.fast5</span></code> files.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: filter_reads <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>--tsv_field TSV_FIELD<span class="o">]</span> <span class="o">[</span>--multi <span class="p">|</span> --single<span class="o">]</span>
+                    <span class="o">[</span>--prefix PREFIX<span class="o">]</span> <span class="o">[</span>--recursive<span class="o">]</span> <span class="o">[</span>--workers WORKERS<span class="o">]</span>
+                    input output filter
+
+Extract reads from multi-read .fast5 files.
+
+positional arguments:
+  input                 Path to input multi-read .fast5 files.
+  output                Output folder.
+  filter                A .tsv file with column <span class="sb">`</span>read_id<span class="sb">`</span> defining required
+                        reads.
+
+optional arguments:
+  -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+  --tsv_field TSV_FIELD
+                        Field name from <span class="sb">`</span>filter<span class="sb">`</span> file to obtain <span class="nb">read</span> IDs.
+  --multi               Output multi-read files.
+  --single              Output single-read files.
+  --prefix PREFIX       Read file prefix.
+  --recursive           Search recursively under <span class="sb">`</span>input<span class="sb">`</span> <span class="k">for</span> <span class="nb">source</span> files.
+  --workers WORKERS     Number of worker processes.
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fast5_research.html" class="btn btn-neutral float-right" title="fast5_research package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="examples.html" class="btn btn-neutral float-left" title="Fast5 Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

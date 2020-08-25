@@ -1,0 +1,1709 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fast5_research package &mdash; Fast5_research 1.2.22 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Command line Programs" href="cmdline.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Fast5_research
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.2.22
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Fast5 Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmdline.html">Command line Programs</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">fast5_research package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fast5_research.extract">fast5_research.extract module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fast5_research.fast5">fast5_research.fast5 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fast5_research.fast5_bulk">fast5_research.fast5_bulk module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fast5_research.util">fast5_research.util module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-fast5_research">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Fast5_research</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>fast5_research package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/fast5_research.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fast5-research-package">
+<h1>fast5_research package<a class="headerlink" href="#fast5-research-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-fast5_research.extract">
+<span id="fast5-research-extract-module"></span><h2>fast5_research.extract module<a class="headerlink" href="#module-fast5_research.extract" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="fast5_research.extract.MultiWriter">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">MultiWriter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">out_path</span></em>, <em class="sig-param"><span class="n">by_id</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">reads_per_file</span><span class="o">=</span><span class="default_value">4000</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#MultiWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.MultiWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fast5_research.extract.ReadWriter" title="fast5_research.extract.ReadWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">fast5_research.extract.ReadWriter</span></code></a></p>
+<dl class="py method">
+<dt id="fast5_research.extract.MultiWriter.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#MultiWriter.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.MultiWriter.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.extract.MultiWriter.write_read">
+<code class="sig-name descname">write_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">read</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#MultiWriter.write_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.MultiWriter.write_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>read</strong> – either a <cite>Read</cite> object or an hdf group handle from a
+source multi-read file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="fast5_research.extract.Read">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">Read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">read_id</span></em>, <em class="sig-param"><span class="n">read_number</span></em>, <em class="sig-param"><span class="n">tracking_id</span></em>, <em class="sig-param"><span class="n">channel_id</span></em>, <em class="sig-param"><span class="n">context_tags</span></em>, <em class="sig-param"><span class="n">raw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#Read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.Read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="fast5_research.extract.ReadWriter">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">ReadWriter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">out_path</span></em>, <em class="sig-param"><span class="n">by_id</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#ReadWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.ReadWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="fast5_research.extract.ReadWriter.write_read">
+<code class="sig-name descname">write_read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#ReadWriter.write_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.ReadWriter.write_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="fast5_research.extract.SingleWriter">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">SingleWriter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">out_path</span></em>, <em class="sig-param"><span class="n">by_id</span></em>, <em class="sig-param"><span class="n">prefix</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#SingleWriter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.SingleWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#fast5_research.extract.ReadWriter" title="fast5_research.extract.ReadWriter"><code class="xref py py-class docutils literal notranslate"><span class="pre">fast5_research.extract.ReadWriter</span></code></a></p>
+<dl class="py method">
+<dt id="fast5_research.extract.SingleWriter.write_read">
+<code class="sig-name descname">write_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">read</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#SingleWriter.write_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.SingleWriter.write_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.build_read_index">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">build_read_index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#build_read_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.build_read_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.extract_channel_reads">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">extract_channel_reads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source</span></em>, <em class="sig-param"><span class="n">output</span></em>, <em class="sig-param"><span class="n">prefix</span></em>, <em class="sig-param"><span class="n">flat</span></em>, <em class="sig-param"><span class="n">by_id</span></em>, <em class="sig-param"><span class="n">max_files</span></em>, <em class="sig-param"><span class="n">multi</span></em>, <em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">summary</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#extract_channel_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.extract_channel_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.extract_read_summary">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">extract_read_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#extract_read_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.extract_read_summary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.extract_read_summary_internal">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">extract_read_summary_internal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span></em>, <em class="sig-param"><span class="n">channels</span></em>, <em class="sig-param"><span class="n">out_fh</span></em>, <em class="sig-param"><span class="n">logger</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#extract_read_summary_internal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.extract_read_summary_internal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.extract_reads">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">extract_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#extract_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.extract_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.filter_file_from_bam">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">filter_file_from_bam</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#filter_file_from_bam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.filter_file_from_bam" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.filter_multi_reads">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">filter_multi_reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#filter_multi_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.filter_multi_reads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.reads_in_multi">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">reads_in_multi</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span></em>, <em class="sig-param"><span class="n">filt</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#reads_in_multi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.reads_in_multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of read IDs contained within a multi-read file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src</strong> – source file.</p></li>
+<li><p><strong>filt</strong> – perform filtering by given set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>set of read UUIDs (as string and recorded in hdf group name).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.time_cast">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">time_cast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span></em>, <em class="sig-param"><span class="n">sample_rate</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#time_cast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.time_cast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a float time to sample index, or return time unmodified</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.extract.triplewise">
+<code class="sig-prename descclassname">fast5_research.extract.</code><code class="sig-name descname">triplewise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterable</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/extract.html#triplewise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.extract.triplewise" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-fast5_research.fast5">
+<span id="fast5-research-fast5-module"></span><h2>fast5_research.fast5 module<a class="headerlink" href="#module-fast5_research.fast5" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="fast5_research.fast5.Fast5">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.fast5.</code><code class="sig-name descname">Fast5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">read</span><span class="o">=</span><span class="default_value">'r'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">h5py._hl.files.File</span></code></p>
+<p>Class for grabbing data from single read fast5 files. Many attributes/
+groups are assumed to exist currently (we’re concerned mainly with reading).
+Needs some development to make robust and for writing.</p>
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.New">
+<em class="property">classmethod </em><code class="sig-name descname">New</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">read</span><span class="o">=</span><span class="default_value">'w'</span></em>, <em class="sig-param"><span class="n">tracking_id</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">context_tags</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">channel_id</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.New"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.New" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a fresh single-read file, with meta data written to
+standard locations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.assert_writable">
+<code class="sig-name descname">assert_writable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.assert_writable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.assert_writable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.attributes">
+<em class="property">property </em><code class="sig-name descname">attributes</code><a class="headerlink" href="#fast5_research.fast5.Fast5.attributes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attributes for a read, assumes one read in file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.channel_meta">
+<em class="property">property </em><code class="sig-name descname">channel_meta</code><a class="headerlink" href="#fast5_research.fast5.Fast5.channel_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Channel meta information as python dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.context_tags">
+<em class="property">property </em><code class="sig-name descname">context_tags</code><a class="headerlink" href="#fast5_research.fast5.Fast5.context_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Context tags meta information as python dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.convert_channel_id">
+<em class="property">static </em><code class="sig-name descname">convert_channel_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.convert_channel_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.convert_channel_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.convert_raw_meta">
+<em class="property">static </em><code class="sig-name descname">convert_raw_meta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.convert_raw_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.convert_raw_meta" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.convert_tracking_id">
+<em class="property">static </em><code class="sig-name descname">convert_tracking_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tracking_id</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.convert_tracking_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.convert_tracking_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_alignment_attrs">
+<code class="sig-name descname">get_alignment_attrs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Alignment'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_alignment_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_alignment_attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the annotated alignment meta data from the fast5 file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – String to use in paths, e.g. ‘template’.</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_analysis_latest">
+<code class="sig-name descname">get_analysis_latest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_analysis_latest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_analysis_latest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get group of latest (present) analysis with a given base path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – Get the (full) path of newest analysis with a given base
+name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_analysis_new">
+<code class="sig-name descname">get_analysis_new</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_analysis_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_analysis_new" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get group path for new analysis with a given base name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – desired analysis name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_any_mapping_data">
+<code class="sig-name descname">get_any_mapping_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">attrs_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">get_model</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_any_mapping_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_any_mapping_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method for extracting whatever mapping data might be
+present, favouring squiggle_mapping output over basecall_mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – (Probably) ‘template’</p></li>
+<li><p><strong>attrs_only</strong> – Use attrs_only=True to return mapping attributes without events</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the tuple (events, attrs) or attrs only</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_basecall_data">
+<code class="sig-name descname">get_basecall_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Basecall_1D'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_basecall_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_basecall_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the annotated basecall_1D events from the fast5 file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – String to use in paths, e.g. ‘template’.</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_engine_state">
+<code class="sig-name descname">get_engine_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_engine_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_engine_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve engine state from /EngineStates/, either across the whole read
+(default) or at a given time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – name of engine state</p></li>
+<li><p><strong>time</strong> – time (in seconds) at which to retrieve temperature</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_fastq">
+<code class="sig-name descname">get_fastq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Basecall_1D'</span></em>, <em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">custom</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_fastq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_fastq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the fastq (sequence) data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+<li><p><strong>section</strong> – (Probably) ‘template’</p></li>
+<li><p><strong>custom</strong> – Custom hdf path overriding all of the above.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_mapping_attrs">
+<code class="sig-name descname">get_mapping_attrs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Squiggle_Map'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_mapping_attrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_mapping_attrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the annotated mapping meta data from the fast5 file.
+Names which are inconsistent between squiggle_mapping and basecall_mapping are added to
+basecall_mapping (thus duplicating the attributes in basecall mapping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – String to use in paths, e.g. ‘template’.</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)
+For basecall mapping use analysis = ‘Alignment’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_mapping_data">
+<code class="sig-name descname">get_mapping_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Squiggle_Map'</span></em>, <em class="sig-param"><span class="n">get_model</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_mapping_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_mapping_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the annotated mapping events from the fast5 file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The seq_pos column for the events table returned from basecall_mapping is
+adjusted to be the genome position (consistent with squiggle_mapping)</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – String to use in paths, e.g. ‘template’.</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses). For basecall mapping
+use analysis = ‘AlignToRef’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_model">
+<code class="sig-name descname">get_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Squiggle_Map'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get model used for squiggle mapping</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_raw">
+<code class="sig-name descname">get_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get raw data in file, might not be present.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scale</strong> – Scale data to pA? (rather than ADC values)</p>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method is deprecated and should not be used, instead use
+.get_read(raw=True) to read both MinKnow conformant files
+and previous Tang files.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_read">
+<code class="sig-name descname">get_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">raw</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">read_number</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like get_reads, but only the first read in the file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group</strong> – return hdf group rather than event/raw data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_read_stats">
+<code class="sig-name descname">get_read_stats</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_read_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_read_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines stats based on events with output of .summary, assumes a
+one read file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_reads">
+<code class="sig-name descname">get_reads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">group</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">raw</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">read_numbers</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator across event data for all reads in file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>group</strong> – return hdf group rather than event data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_reference_fasta">
+<code class="sig-name descname">get_reference_fasta</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Alignment'</span></em>, <em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">custom</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_reference_fasta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_reference_fasta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get fasta sequence of known DNA fragment for the read.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+<li><p><strong>section</strong> – (Probably) ‘template’</p></li>
+<li><p><strong>custom</strong> – Custom hdf path overriding all of the above.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_sam">
+<code class="sig-name descname">get_sam</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Alignment'</span></em>, <em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">custom</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_sam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_sam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get SAM (alignment) data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+<li><p><strong>section</strong> – (Probably) ‘template’</p></li>
+<li><p><strong>custom</strong> – Custom hdf path overriding all of the above.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_section_events">
+<code class="sig-name descname">get_section_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">section</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Segment_Linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_section_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_section_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the event data for a signal section</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis</strong> – Base analysis path (under /Analyses)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_section_indices">
+<code class="sig-name descname">get_section_indices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Segment_Linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_section_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_section_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get two tuples indicating the event indices for signal
+segmentation boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis</strong> – Base analysis path (under /Analyses)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_split_data">
+<code class="sig-name descname">get_split_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Segment_Linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_split_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get signal segmentation data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.get_temperature">
+<code class="sig-name descname">get_temperature</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">field</span><span class="o">=</span><span class="default_value">'heatsink'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.get_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve temperature data from /EngineStates/, either across the whole read
+(default) or at a given time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> – time at which to get temperature</p></li>
+<li><p><strong>field</strong> – one of (‘heatsink’, ‘asic’)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.repack">
+<code class="sig-name descname">repack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pack_opts</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.repack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.repack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run h5repack on the current file. Returns a fresh object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_basecall_data">
+<code class="sig-name descname">set_basecall_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">events</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">seq</span></em>, <em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'unknown'</span></em>, <em class="sig-param"><span class="n">post</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">score</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">quality_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">qstring</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Basecall_1D'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_basecall_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_basecall_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an annotated event table and 1D basecalling summary similiar
+to chimaera and add them to the fast5 file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> – Numpy record array of events. Must contain the mean,
+stdv, start and length fields.</p></li>
+<li><p><strong>scale</strong> – Scaling object.</p></li>
+<li><p><strong>path</strong> – Viterbi path containing model pointers (1D np.array).</p></li>
+<li><p><strong>model</strong> – Model object.</p></li>
+<li><p><strong>seq</strong> – Basecalled sequence string for fastq.</p></li>
+<li><p><strong>section</strong> – String to use in paths, e.g. ‘template’.</p></li>
+<li><p><strong>name</strong> – Identifier string for fastq.</p></li>
+<li><p><strong>post</strong> – Numpy 2D array containing the posteriors (event, state), used to annotate events.</p></li>
+<li><p><strong>score</strong> – Quality value for the whole strand.</p></li>
+<li><p><strong>quality_data</strong> – Numpy 2D array containing quality_data, used to annotate events.</p></li>
+<li><p><strong>qstring</strong> – Quality string for fastq.</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_engine_state">
+<code class="sig-name descname">set_engine_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_engine_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_engine_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the engine state data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> – a 1D-array containing two fields, the first of which
+must be named ‘time’. The name of the second field will be used
+to name the engine state and be used in the dataset path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_mapping_data">
+<code class="sig-name descname">set_mapping_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">events</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">seq</span></em>, <em class="sig-param"><span class="n">ref_name</span></em>, <em class="sig-param"><span class="n">section</span><span class="o">=</span><span class="default_value">'template'</span></em>, <em class="sig-param"><span class="n">post</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">score</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_reverse</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Squiggle_Map'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_mapping_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_mapping_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an annotated event table and mapping summary similiar to
+chimaera and add them to the fast5 file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> of events. Must contain mean,
+stdv, start and length fields.</p></li>
+<li><p><strong>scale</strong> – Scaling object.</p></li>
+<li><p><strong>path</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> containing position in reference.
+Negative values will be interpreted as “bad emissions”.</p></li>
+<li><p><strong>model</strong> – Model object to use.</p></li>
+<li><p><strong>seq</strong> – String representation of the reference sequence.</p></li>
+<li><p><strong>section</strong> – Section of strand, e.g. ‘template’.</p></li>
+<li><p><strong>name</strong> – Reference name.</p></li>
+<li><p><strong>post</strong> – Two-dimensional <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> containing posteriors.</p></li>
+<li><p><strong>score</strong> – Mapping quality score.</p></li>
+<li><p><strong>is_reverse</strong> – Mapping refers to ‘-‘ strand (bool).</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_raw">
+<code class="sig-name descname">set_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em>, <em class="sig-param"><span class="n">meta</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">read_number</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the raw data in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw</strong> – raw data to add</p></li>
+<li><p><strong>read_number</strong> – read number (as usually given in filename and
+contained within HDF paths, viz. Reads/Read_&lt;&gt;/). If not given
+attempts will be made to guess the number (assumes single read
+per file).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_raw_old">
+<code class="sig-name descname">set_raw_old</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em>, <em class="sig-param"><span class="n">meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_raw_old"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_raw_old" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the raw data in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw</strong> – raw data to add</p></li>
+<li><p><strong>meta</strong> – meta data dictionary</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This method does not write raw data conforming to the Fast5
+specification. This class will currently still read data
+written by this method.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_read">
+<code class="sig-name descname">set_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write event data to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – event data</p></li>
+<li><p><strong>meta</strong> – meta data to attach to read</p></li>
+<li><p><strong>read_number</strong> – per-channel read counter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.set_split_data">
+<code class="sig-name descname">set_split_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">analysis</span><span class="o">=</span><span class="default_value">'Segment_Linear'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.set_split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.set_split_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a dict containing split point data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – <cite>dict</cite>-like object containing attrs to add</p></li>
+<li><p><strong>analysis</strong> – Base analysis name (under /Analyses)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Not checking currently for required fields.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.strip_analyses">
+<code class="sig-name descname">strip_analyses</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">keep</span><span class="o">=</span><span class="default_value">'EventDetection_000', 'RawData'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.strip_analyses"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.strip_analyses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all analyses from file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>keep</strong> – whitelist of analysis groups to keep</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.summary">
+<code class="sig-name descname">summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rename</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">delete</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">scale</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#Fast5.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.Fast5.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>A read summary, assumes one read in file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.tracking_id">
+<em class="property">property </em><code class="sig-name descname">tracking_id</code><a class="headerlink" href="#fast5_research.fast5.Fast5.tracking_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tracking id meta information as python dict</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5.Fast5.writable">
+<em class="property">property </em><code class="sig-name descname">writable</code><a class="headerlink" href="#fast5_research.fast5.Fast5.writable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can we write to the file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.fast5.iterate_fast5">
+<code class="sig-prename descclassname">fast5_research.fast5.</code><code class="sig-name descname">iterate_fast5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">'Stream'</span></em>, <em class="sig-param"><span class="n">strand_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">paths</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'r'</span></em>, <em class="sig-param"><span class="n">limit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">robust</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">progress</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">recursive</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#iterate_fast5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.iterate_fast5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over directory of fast5 files, optionally only returning those in list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Directory in which single read fast5 are located or filename.</p></li>
+<li><p><strong>strand_list</strong> – List of strands, can be a python list of delimited
+table. If the later and a filename field is present, this is used
+to locate files. If a file is given and a strand field is present,
+the directory index file is searched for and filenames built from that.</p></li>
+<li><p><strong>paths</strong> – Yield file paths instead of fast5 objects.</p></li>
+<li><p><strong>mode</strong> – Mode for opening files.</p></li>
+<li><p><strong>limit</strong> – Limit number of files to consider.</p></li>
+<li><p><strong>shuffle</strong> – Shuffle files to randomize yield of files.</p></li>
+<li><p><strong>robust</strong> – Carry on with iterating over FAST5 files after an exception was raised.</p></li>
+<li><p><strong>progress</strong> – Display progress bar.</p></li>
+<li><p><strong>recursive</strong> – Perform a recursive search for files in subdirectories of <cite>path</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.fast5.recursive_glob">
+<code class="sig-prename descclassname">fast5_research.fast5.</code><code class="sig-name descname">recursive_glob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">treeroot</span></em>, <em class="sig-param"><span class="n">pattern</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5.html#recursive_glob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5.recursive_glob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-fast5_research.fast5_bulk">
+<span id="fast5-research-fast5-bulk-module"></span><h2>fast5_research.fast5_bulk module<a class="headerlink" href="#module-fast5_research.fast5_bulk" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="fast5_research.fast5_bulk.AsicBCommand">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.fast5_bulk.</code><code class="sig-name descname">AsicBCommand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">command</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#AsicBCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper around the asicb command structure</p>
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBCommand.configuration">
+<em class="property">property </em><code class="sig-name descname">configuration</code><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBCommand.configuration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBCommand.min_temperature">
+<em class="property">property </em><code class="sig-name descname">min_temperature</code><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBCommand.min_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="fast5_research.fast5_bulk.AsicBConfiguration">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.fast5_bulk.</code><code class="sig-name descname">AsicBConfiguration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#AsicBConfiguration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBConfiguration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper around the asicb configuration struct passed to the asicb over usb</p>
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBConfiguration.active_mux">
+<code class="sig-name descname">active_mux</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#AsicBConfiguration.active_mux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBConfiguration.active_mux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the active mux for the specified channel
+:param channel: 0 based</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBConfiguration.bias_voltage">
+<em class="property">property </em><code class="sig-name descname">bias_voltage</code><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBConfiguration.bias_voltage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBConfiguration.bits_at">
+<code class="sig-name descname">bits_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#AsicBConfiguration.bits_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBConfiguration.bits_at" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.AsicBConfiguration.int_at">
+<code class="sig-name descname">int_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">end</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#AsicBConfiguration.int_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.AsicBConfiguration.int_at" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="fast5_research.fast5_bulk.BulkFast5">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.fast5_bulk.</code><code class="sig-name descname">BulkFast5</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'r'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">h5py._hl.files.File</span></code></p>
+<p>Class for reading data from a bulk fast5 file</p>
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.New">
+<em class="property">classmethod </em><code class="sig-name descname">New</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">read</span><span class="o">=</span><span class="default_value">'a'</span></em>, <em class="sig-param"><span class="n">tracking_id</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">context_tags</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">channel_id</span><span class="o">=</span><span class="default_value">{}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.New"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.New" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a fresh bulk file, with meta data written to
+standard locations. There is currently no checking this meta data.
+TODO: Add meta data checking.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes">
+<code class="sig-name descname">get_bias_voltage_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_bias_voltage_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get changes in the bias voltage.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a long (-long-long) time the only logging of the common
+electrode voltage was the experimental history (accurate to one
+second). The addition of the voltage trace changed this, but this
+dataset is cumbersome. MinKnow 1.x(.3?) added the asic command
+history which is typically much shorter and therefore quicker to
+query. The bias voltage is numerously record. For MinION asics
+there is typically a -5X multiplier to convert the data into
+correct units with the sign people are used to.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes_in_window">
+<code class="sig-name descname">get_bias_voltage_changes_in_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_bias_voltage_changes_in_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_bias_voltage_changes_in_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all mux voltage changes within a time window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>times</strong> – tuple of floats (start_second, end_second)</p></li>
+<li><p><strong>raw_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is the bias voltage from the expt history (accurate to 1
+second), and will not include any changes in voltage related to
+waveforms. For the full voltage trace, use get_voltage.</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_context_meta">
+<code class="sig-name descname">get_context_meta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_context_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_context_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get context meta</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_engine_state">
+<code class="sig-name descname">get_engine_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_engine_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_engine_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get changes in an engine state or the value of an engine
+state at a given time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>state</strong> – the engine state to retrieve.</p></li>
+<li><p><strong>time</strong> – the time at which to grab engine state.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_event_detection_parameters">
+<code class="sig-name descname">get_event_detection_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_event_detection_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_event_detection_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the full set of parameters related to event detection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_events">
+<code class="sig-name descname">get_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">event_indices</span><span class="o">=</span><span class="default_value">None, None</span></em>, <em class="sig-param"><span class="n">use_scaling</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse channel event data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>times</strong> – tuple of floats (start_second, end_second)</p></li>
+<li><p><strong>raw_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+<li><p><strong>event_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+<li><p><strong>use_scaling</strong> – if True, scale the current level</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices &gt; event_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_metadata">
+<code class="sig-name descname">get_metadata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the metadata for the specified channel.</p>
+<p>Look for first for events metadata, and fall-back on raw metadata, returning an empty dict if neither could be found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_mux">
+<code class="sig-name descname">get_mux</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">raw_index</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">wells_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_raw_index</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_mux"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_mux" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the multiplex well_id (“the mux”) at a given time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>raw_index</strong> – sample index</p></li>
+<li><p><strong>time</strong> – time in seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Wells_only</dt>
+<dd class="field-even"><p>bool, if True, ignore changes to mux states not in [1,2,3,4]
+and hence return the last well mux.</p>
+</dd>
+<dt class="field-odd">Return_raw_index</dt>
+<dd class="field-odd"><p>bool, if True, return tuple (mux, raw_index), raw_index being
+raw index when the mux was set.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are multiple mux states associated with each well (e.g. common_voltage_1 and unblock_volage_1).
+Here, we return the well_id associated with the mux state (using self.enum_to_mux), i.e. 1 in both these cases.</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_mux_changes">
+<code class="sig-name descname">get_mux_changes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">wells_only</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_mux_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_mux_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get changes in multiplex settings for given channel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel for which to fetch data</p>
+</dd>
+<dt class="field-even">Wells_only</dt>
+<dd class="field-even"><p>bool, if True, ignore changes to mux states not in [1,2,3,4]</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are multiple mux states associated with each well (e.g. 1:common_voltage_1 and 6:unblock_voltage_1).
+Here, we return mux state numbers, e.g. 1 and 6, which can be linked to the well_id using self.enum_to_mux</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_mux_changes_in_window">
+<code class="sig-name descname">get_mux_changes_in_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_mux_changes_in_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_mux_changes_in_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all mux changes within a time window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>times</strong> – tuple of floats (start_second, end_second)</p></li>
+<li><p><strong>raw_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are multiple mux values associated with each well (e.g. 1:common_voltage_1 and 6:unblock_voltage_1).
+Here, we return mux values, e.g. 1 and 6, which can be linked to the well_id using self.enum_to_mux.</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_raw">
+<code class="sig-name descname">get_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None, None</span></em>, <em class="sig-param"><span class="n">use_scaling</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>If available, parse channel raw data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>times</strong> – tuple of floats (start_second, end_second)</p></li>
+<li><p><strong>raw_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+<li><p><strong>use_scaling</strong> – if True, scale the current level</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_reads">
+<code class="sig-name descname">get_reads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">transitions</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">multi_row_class</span><span class="o">=</span><span class="default_value">'auto'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse channel read data to yield details of reads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>transitions</strong> – if True, include transition reads</p></li>
+<li><p><strong>multi_row_class</strong> – options: ‘auto’, modal, ‘penultimate’, ‘final’.
+For reads which span multiple rows, use the classification from
+‘auto’: modal class if present, penultimate row if not
+‘modal’: modal class if present
+‘penultimate’: penultimate row
+‘final’: final row.
+Modal classification not supported by very old versions of MinKNOW.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_state">
+<code class="sig-name descname">get_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">raw_index</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the channel state at a given time</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>raw_index</strong> – sample index</p></li>
+<li><p><strong>time</strong> – time in seconds</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_state_changes">
+<code class="sig-name descname">get_state_changes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_state_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_state_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse channel state changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>channel</strong> – channel number int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_states_in_window">
+<code class="sig-name descname">get_states_in_window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_states_in_window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_states_in_window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all channel states within a time window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channel</strong> – channel number int</p></li>
+<li><p><strong>times</strong> – tuple of floats (start_second, end_second)</p></li>
+<li><p><strong>raw_indices</strong> – tuple of ints (start_index, end_index)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Exactly one of the slice keyword arguments needs to be specified,
+as the method will override them in the order of times
+&gt; raw_indices.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_temperature">
+<code class="sig-name descname">get_temperature</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">field</span><span class="o">=</span><span class="default_value">'heatsink'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_temperature"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_tracking_meta">
+<code class="sig-name descname">get_tracking_meta</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_tracking_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_tracking_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get tracking meta data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_voltage">
+<code class="sig-name descname">get_voltage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">times</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">raw_indices</span><span class="o">=</span><span class="default_value">None, None</span></em>, <em class="sig-param"><span class="n">use_scaling</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_voltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_voltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts raw common electrode trace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raw_indices</dt>
+<dd class="field-odd"><p>tuple of ints to limit section of voltage data loaded.</p>
+</dd>
+<dt class="field-even">Use_scaling</dt>
+<dd class="field-even"><p>bool, whether to scale voltage data. If no scaling meta is found,
+scale by -5 (as appropriate for MinION).</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>voltage as array (including 5x multiplyer for MinKnow)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.get_waveform_timings">
+<code class="sig-name descname">get_waveform_timings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.get_waveform_timings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.get_waveform_timings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the timings of the waveforms (if any).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of tuples of start and end times</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.has_raw">
+<code class="sig-name descname">has_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.has_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.has_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there is raw data for this channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.has_reads">
+<code class="sig-name descname">has_reads</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.has_reads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.has_reads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there is read data for this channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.has_states">
+<code class="sig-name descname">has_states</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.has_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.has_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if there is State data for this channel.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.parse_history">
+<code class="sig-name descname">parse_history</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.parse_history"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.parse_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse the experimental history to pull out various environmental factors.
+The functions below are quite nasty, don’t enquire too hard.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.set_events">
+<code class="sig-name descname">set_events</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">meta</span></em>, <em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.set_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.set_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write event data to file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – event data</p></li>
+<li><p><strong>meta</strong> – meta data to attach to read</p></li>
+<li><p><strong>read_number</strong> – per-channel read counter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.set_raw">
+<code class="sig-name descname">set_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw</span></em>, <em class="sig-param"><span class="n">channel</span></em>, <em class="sig-param"><span class="n">meta</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.set_raw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.set_raw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the raw data in file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw</strong> – raw data to add</p></li>
+<li><p><strong>channel</strong> – channel number</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="fast5_research.fast5_bulk.BulkFast5.set_voltage">
+<code class="sig-name descname">set_voltage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">meta</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/fast5_bulk.html#BulkFast5.set_voltage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.fast5_bulk.BulkFast5.set_voltage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-fast5_research.util">
+<span id="fast5-research-util-module"></span><h2>fast5_research.util module<a class="headerlink" href="#module-fast5_research.util" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="fast5_research.util.MockZeroArray">
+<em class="property">class </em><code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">MockZeroArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#MockZeroArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.MockZeroArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+<dl class="py method">
+<dt id="fast5_research.util.MockZeroArray.argmax">
+<code class="sig-name descname">argmax</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#MockZeroArray.argmax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.MockZeroArray.argmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fake argmax values of an array.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.build_mapping_summary_table">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">build_mapping_summary_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mapping_summary</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#build_mapping_summary_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.build_mapping_summary_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a mapping summary table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mapping_summary</strong> – List of curr_map dictionaries</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Numpy record array containing summary contents. One record per array element of mapping_summary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.build_mapping_table">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">build_mapping_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">events</span></em>, <em class="sig-param"><span class="n">ref_seq</span></em>, <em class="sig-param"><span class="n">post</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">model</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#build_mapping_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.build_mapping_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a mapping table based on output of a dragonet.mapper style object.
+Taken from chimaera.common.utilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>events</strong> – Numpy record array of events. Must contain the mean,
+stdv, start and length fields.</p></li>
+<li><p><strong>ref_seq</strong> – String representation of the reference sequence.</p></li>
+<li><p><strong>post</strong> – Numpy 2D array containing the posteriors (event, state).</p></li>
+<li><p><strong>scale</strong> – Scaling object.</p></li>
+<li><p><strong>path</strong> – Numpy 1D array containing position in reference. May contain
+negative values, which will be interpreted as “bad emissions”.</p></li>
+<li><p><strong>model</strong> – Model object to use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>numpy record array containing summary fields. One record per event.</p>
+</dd>
+</dl>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Output Field</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><em>mean</em></p></td>
+<td><p>mean value of event samples (level)</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>scaled_mean</em></p></td>
+<td><p><em>mean</em> scaled to the bare level emission (mean/mode)</p></td>
+</tr>
+<tr class="row-even"><td><p><em>stdv</em></p></td>
+<td><p>standard deviation of event samples (noise)</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>scaled_stdv</em></p></td>
+<td><p><em>stdv</em> scaled to the bare stdv emission (mode)</p></td>
+</tr>
+<tr class="row-even"><td><p><em>start</em></p></td>
+<td><p>start time of event /s</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>length</em></p></td>
+<td><p>length of event /s</p></td>
+</tr>
+<tr class="row-even"><td><p><em>model_level</em></p></td>
+<td><p>modelled event level, i.e. the level emission
+associated with the kmer <em>kmer</em>, scaled to the data</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>model_scaled_level</em></p></td>
+<td><p>bare level emission</p></td>
+</tr>
+<tr class="row-even"><td><p><em>model_sd</em></p></td>
+<td><p>modelled event noise, i.e. the sd emission associated
+with the kmer <em>kmer</em>, scaled  to the data</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>model_scaled_sd</em></p></td>
+<td><p>bare noise emission</p></td>
+</tr>
+<tr class="row-even"><td><p><em>seq_pos</em></p></td>
+<td><p>aligned sequence position, position on Viterbi path</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>p_seq_pos</em></p></td>
+<td><p>posterior probability of states on Viterbi path</p></td>
+</tr>
+<tr class="row-even"><td><p><em>kmer</em></p></td>
+<td><p>kmer identity of <em>seq_pos</em></p></td>
+</tr>
+<tr class="row-odd"><td><p><em>mp_pos</em></p></td>
+<td><p>aligned sequence position, position with highest
+posterioir</p></td>
+</tr>
+<tr class="row-even"><td><p><em>p_mp_pos</em></p></td>
+<td><p>posterior probability of most probable states</p></td>
+</tr>
+<tr class="row-odd"><td><p><em>mp_kmer</em></p></td>
+<td><p>kmer identity of <em>mp_kmer</em></p></td>
+</tr>
+<tr class="row-even"><td><p><em>good_emission</em></p></td>
+<td><p>whether or not the HMM has tagged event as fitting
+the model</p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.compute_movement_stats">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">compute_movement_stats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#compute_movement_stats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.compute_movement_stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute movement stats from a mapping state path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarry</span></code> containing position in reference.
+Negative values are interpreted as “bad emissions”.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.create_basecall_1d_output">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">create_basecall_1d_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw_events</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">post</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#create_basecall_1d_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.create_basecall_1d_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the annotated event table and basecalling summaries similiar to chimaera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw_events</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> with fields mean, stdv, start and,
+length fields.</p></li>
+<li><p><strong>scale</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">dragonet.basecall.scaling.Scaler</span></code> object (or object
+with attributes <cite>shift</cite>, <cite>scale</cite>, <cite>drift</cite>, <cite>var</cite>, <cite>scale_sd</cite>, <cite>var_sd</cite>,
+and <cite>var_sd</cite>.</p></li>
+<li><p><strong>path</strong> – list containing state indices with respect to <cite>model</cite>.</p></li>
+<li><p><strong>model</strong> – <cite>:class:dragonet.util.model.Model</cite> object.</p></li>
+<li><p><strong>post</strong> – Two-dimensional <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> containing posteriors (event, state).</p></li>
+<li><p><strong>quality_data</strong> – :class:np.ndarray Array containing quality_data, used to annotate events.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>A tuple of:</p>
+<ul class="simple">
+<li><p>the annotated input event table</p></li>
+<li><p>a dict of result</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.create_mapping_output">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">create_mapping_output</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">raw_events</span></em>, <em class="sig-param"><span class="n">scale</span></em>, <em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">seq</span></em>, <em class="sig-param"><span class="n">post</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">n_states</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_reverse</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">substates</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#create_mapping_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.create_mapping_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the annotated event table and summaries similiar to chimaera</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raw_events</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> with fields <cite>mean</cite>, <cite>stdv</cite>, <cite>start</cite>,
+and <cite>length</cite> fields.</p></li>
+<li><p><strong>scale</strong> – <code class="xref py py-class docutils literal notranslate"><span class="pre">dragonet.basecall.scaling.Scaler</span></code> object (or object
+with attributes <cite>shift</cite>, <cite>scale</cite>, <cite>drift</cite>, <cite>var</cite>, <cite>scale_sd</cite>, <cite>var_sd</cite>,
+and <cite>var_sd</cite>.</p></li>
+<li><p><strong>path</strong> – list containing state indices with respect to <cite>model</cite>.</p></li>
+<li><p><strong>model</strong> – <cite>:class:dragonet.util.model.Model</cite> object.</p></li>
+<li><p><strong>seq</strong> – String representation of the reference sequence.</p></li>
+<li><p><strong>post</strong> – Two-dimensional <code class="xref py py-class docutils literal notranslate"><span class="pre">np.ndarray</span></code> containing posteriors (event, state).</p></li>
+<li><p><strong>is_reverse</strong> – Mapping refers to ‘-‘ strand (bool).</p></li>
+<li><p><strong>substate</strong> – Mapping contains substates?</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A tuple of:
+* the annotated input event table,
+* a dict of result.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.docstring_parameter">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">docstring_parameter</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">sub</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#docstring_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.docstring_parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allow docstrings to contain parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.dtype_descr">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">dtype_descr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#dtype_descr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.dtype_descr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get arr.dtype.descr
+Views of structured arrays in which columns have been re-ordered nolonger support arr.dtype.descr
+see <a class="reference external" href="https://github.com/numpy/numpy/commit/dd8a2a8e29b0dc85dca4d2964c92df3604acc212">https://github.com/numpy/numpy/commit/dd8a2a8e29b0dc85dca4d2964c92df3604acc212</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.file_has_fields">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">file_has_fields</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">fields</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#file_has_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.file_has_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that a tsv file has given fields</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> – filename to read. If the filename extension is
+gz or bz2, the file is first decompressed.</p></li>
+<li><p><strong>fields</strong> – list of required fields.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.get_changes">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">get_changes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">ignore_cols</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">use_cols</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#get_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.get_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return only rows of a structured array which are not equal to the previous row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – Numpy record array.</p></li>
+<li><p><strong>ignore_cols</strong> – iterable of column names to ignore in checking for equality between rows.</p></li>
+<li><p><strong>use_cols</strong> – iterable of column names to include in checking for equality between rows (only used if ignore_cols is None).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Numpy record array.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.group_vector">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">group_vector</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#group_vector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.group_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group a vector by unique values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arr</strong> – input vector to be grouped.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a dictionary mapping unique values to arrays of indices of the
+input vector.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.kmer_overlap_gen">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">kmer_overlap_gen</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kmers</span></em>, <em class="sig-param"><span class="n">moves</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#kmer_overlap_gen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.kmer_overlap_gen" title="Permalink to this definition">¶</a></dt>
+<dd><p>From a list of kmers return the character shifts between them.
+(Movement from i to i+1 entry, e.g. [AATC,ATCG] returns [0,1]).
+Allowed moves may be specified in moves argument in order of preference.
+Taken from dragonet.bio.seq_tools</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kmers</strong> – sequence of kmer strings.</p></li>
+<li><p><strong>moves</strong> – allowed movements, if None all movements to length of kmer
+are allowed.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.mad">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">mad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">factor</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepdims</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#mad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.mad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Median Absolute Deviation, i.e., the median
+of the absolute deviations from the median, and (by default)
+adjust by a factor for asymptotically normal consistency.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – A <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code> object</p></li>
+<li><p><strong>factor</strong> – Factor to scale MAD by. Default (None) is to be consistent
+with the standard deviation of a normal distribution
+(i.e. mad( N(0,sigma^2) ) = sigma).</p></li>
+<li><p><strong>axis</strong> – For multidimensional arrays, which axis to calculate the median over.</p></li>
+<li><p><strong>keepdims</strong> – If True, axis is kept as dimension of length 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the (scaled) MAD</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.mean_qscore">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">mean_qscore</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scores</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#mean_qscore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.mean_qscore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the phred score corresponding to the mean of the probabilities
+associated with the phred scores provided. Taken from chimaera.common.utilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>scores</strong> – Iterable of phred scores.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Phred score corresponding to the average error rate, as
+estimated from the input phred scores.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.med_mad">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">med_mad</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">factor</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepdims</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#med_mad"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.med_mad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Median Absolute Deviation, i.e., the median
+of the absolute deviations from the median, and the median</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – A <code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code> object</p></li>
+<li><p><strong>factor</strong> – Factor to scale MAD by. Default (None) is to be consistent
+with the standard deviation of a normal distribution
+(i.e. mad( N(0,sigma^2) ) = sigma).</p></li>
+<li><p><strong>axis</strong> – For multidimensional arrays, which axis to calculate over</p></li>
+<li><p><strong>keepdims</strong> – If True, axis is kept as dimension of length 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a tuple containing the median and MAD of the data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.qstring_to_phred">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">qstring_to_phred</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">quality</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#qstring_to_phred"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.qstring_to_phred" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute standard phred scores from a quality string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.readtsv">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">readtsv</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">fields</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#readtsv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.readtsv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a tsv file into a numpy array with required field checking</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> – filename to read. If the filename extension is
+gz or bz2, the file is first decompressed.</p></li>
+<li><p><strong>fields</strong> – list of required fields.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.seq_to_kmers">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">seq_to_kmers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seq</span></em>, <em class="sig-param"><span class="n">length</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#seq_to_kmers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.seq_to_kmers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn a string into a list of (overlapping) kmers.</p>
+<p>e.g. perform the transformation:</p>
+<p>‘ATATGCG’ =&gt; [‘ATA’,’TAT’, ‘ATG’, ‘TGC’, ‘GCG’]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seq</strong> – character string</p></li>
+<li><p><strong>length</strong> – length of kmers in output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of overlapping kmers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.validate_event_table">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">validate_event_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#validate_event_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.validate_event_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an object contains all columns of a basic event array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.validate_model_table">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">validate_model_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#validate_model_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.validate_model_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an object contains all columns of a dragonet Model.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.validate_scale_object">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">validate_scale_object</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#validate_scale_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.validate_scale_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if an object contains all attributes of dragonet Scaler.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="fast5_research.util.window">
+<code class="sig-prename descclassname">fast5_research.util.</code><code class="sig-name descname">window</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterable</span></em>, <em class="sig-param"><span class="n">size</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/fast5_research/util.html#window"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#fast5_research.util.window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an iterator returning a sliding window from another iterator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iterable</strong> – Iterator</p></li>
+<li><p><strong>size</strong> – Size of window</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an iterator returning a tuple containing the data in the window</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-fast5_research">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-fast5_research" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="cmdline.html" class="btn btn-neutral float-left" title="Command line Programs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2017, Oxford Nanopore Technologies
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
