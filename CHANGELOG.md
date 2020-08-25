@@ -1,3 +1,11 @@
+v1.2.22
+-------
+* Update way reads classifications are parsed from the bulk to use modal classification as Minknow now does.
+
+v1.2.21
+-------
+* Add filter_from_bam command to create filter tsv file from BAM and sequencing summary file.
+
 v1.2.20
 -------
 * Add `index_reads` program to build read_id->file index tsv file.

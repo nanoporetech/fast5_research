@@ -9,6 +9,7 @@
 venv_py2/bin/activate:
 	test -d venv_py2 || virtualenv venv_py2 --prompt '(fast5_py2) ' --python=python2
 	. $@ && pip install pip --upgrade
+	. $@ && pip install "setuptools<45"
 	. $@ && pip install -r dev_requirements.txt 
 	. $@ && pip install -r requirements.txt; 
 
