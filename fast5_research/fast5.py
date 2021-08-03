@@ -203,7 +203,7 @@ class Fast5(h5py.File):
             )
         meta = _type_meta(meta, req_keys)
         return meta
-    
+
 
     def _add_string_dataset(self, data, location):
         assert type(data) == str, 'Need to supply a string'
@@ -1386,7 +1386,8 @@ def iterate_fast5(path='Stream', strand_list=None, paths=False, mode='r',
     if shuffle and limit is not None:
         files = np.random.choice(list(files), limit, replace=False)
     elif shuffle:
-        random.shuffle(list(files))
+        files = list(files)
+        random.shuffle(files)
     elif limit is not None:
         try:
             files = files[:limit]
