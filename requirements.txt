@@ -3,6 +3,6 @@
 futures
 h5py<2.9.0     # causes some tests to fail
 numpy>=1.14.0  # 1.14 made some relatively big changes
-progressbar2
+progressbar33>=2.3.1
 pysam
 
