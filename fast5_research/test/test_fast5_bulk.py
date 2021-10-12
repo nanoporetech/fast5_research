@@ -87,6 +87,15 @@ class BulkFast5Test(unittest.TestCase):
         raw = self.fh.get_raw(self.fh.channels[0])
         self.assertEqual(len(raw), 1212525)
 
+
+    def test_parse_times_with_None(self):
+        """Test that times=(None, None) defaults to the whole raw data"""
+
+        raw = self.fh.get_raw(self.fh.channels[0])
+        raw_with_Nones = self.fh.get_raw(self.fh.channels[0], times=(None, None))
+        self.assertEqual(len(raw), len(raw_with_Nones))
+
+
     def test_parse_event_data_len(self):
         """Test parsing the whole event dataset"""
 

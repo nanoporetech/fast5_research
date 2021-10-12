@@ -179,6 +179,9 @@ class BulkFast5(h5py.File):
 
     def _seconds_to_index(self, channel, time):
         """Translate a point in time to an index."""
+        if time is None:
+            return None
+
         return int(time * float(self.sample_rate))
 
 
