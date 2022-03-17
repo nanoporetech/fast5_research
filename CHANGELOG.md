@@ -1,3 +1,10 @@
+v1.2.23
+-------
+* Build using python3.5
+* Fix bug with shuffle option within fast5.py
+* Allow `None` as an input to BulkFast5.get_raw
+* Allow summary file to use `strand_duration` instead of `strand` as column name
+
 v1.2.22
 -------
 * Update way reads classifications are parsed from the bulk to use modal classification as Minknow now does.
