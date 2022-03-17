@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import h5py
 import numpy as np
+import numpy.lib.recfunctions as rfn
 
 import pysam
 import gzip
@@ -121,8 +122,10 @@ def extract_reads():
         if not os.path.isfile(args.summary):
             raise IOError('The summary file does not exist.')
         else:
-            # load summary
+            # load summary, keeping in mind possible alternative column names
             args.summary = np.genfromtxt(args.summary, delimiter='\t', encoding=None, dtype=None, names=True)
+            args.summary = rfn.rename_fields(
+                args.summary, {'strand_duration': 'duration'})
 
     worker = functools.partial(
         extract_channel_reads,
